@@ -146,10 +146,6 @@ function getAcademias(){
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // ==== Sincronização na nuvem (JSONBin.io) ====
-// 1) Crie uma conta grátis em jsonbin.io
-// 2) Crie um bin novo (pode deixar com {})
-// 3) Pegue a X-Master-Key (em "API Keys" no seu perfil) e o Bin ID (na URL do bin)
-// 4) Cole os dois valores abaixo, entre as aspas
 const JSONBIN_API_KEY = '$2a$10$jJJkxiXNrGR5mNa071nwyudobpBEpb1MXAtHcG8lQGK7/u/.yQ6pe';
 const JSONBIN_BIN_ID = '6a641048f5f4af5e29bdfff5';
 const JSONBIN_READ_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`;
@@ -283,12 +279,49 @@ function faixaHTML(graduacao, graus, graus_vermelhos, size){
   return inner;
 }
 
+// ==== Tela de login ====
+// Troque os valores abaixo pelo usuário e senha que você quiser usar
+const APP_USUARIO = 'filipe';
+const APP_SENHA = '98183301Pm@1';
+
+function renderLock(){
+  return `
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;">
+    <div style="max-width:320px;width:100%;">
+      <h1 style="font-size:20px;margin-bottom:4px;">Jiu Presença</h1>
+      <p class="note" style="margin-bottom:16px;">Entre com seu usuário e senha.</p>
+      <form id="lock-form" onsubmit="event.preventDefault(); tentarSenha();">
+        <input type="text" id="lock-usuario" name="username" placeholder="Usuário" autocomplete="username" autocapitalize="off" autocorrect="off"
+          style="width:100%;height:46px;border:1px solid #e2e8f0;border-radius:10px;padding:0 12px;font-size:16px;box-sizing:border-box;margin-bottom:10px;">
+        <input type="password" id="lock-senha" name="password" placeholder="Senha" autocomplete="current-password"
+          style="width:100%;height:46px;border:1px solid #e2e8f0;border-radius:10px;padding:0 12px;font-size:16px;box-sizing:border-box;margin-bottom:10px;">
+        <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+      </form>
+      <p id="lock-erro" class="note" style="color:#dc2626;margin-top:10px;display:none;">Usuário ou senha incorretos.</p>
+    </div>
+  </div>`;
+}
+function tentarSenha(){
+  const usuario = document.getElementById('lock-usuario').value;
+  const senha = document.getElementById('lock-senha').value;
+  if(usuario === APP_USUARIO && senha === APP_SENHA){
+    sessionStorage.setItem('jiu-presenca-unlocked','1');
+    render();
+  } else {
+    document.getElementById('lock-erro').style.display = 'block';
+  }
+}
 function App(){
   const el = document.getElementById('app');
+  if(sessionStorage.getItem('jiu-presenca-unlocked') !== '1'){
+    el.innerHTML = renderLock();
+    return;
+  }
   el.innerHTML = renderHeader() + renderTab() + renderNav() + renderModal();
   bindDynamic();
 }
 function render(){ App(); }
+
 
 function renderHeader(){
   const titles = { dashboard:'Jiu Presença', alunos:'Alunos', presenca:'Presença', progresso:'Progresso', historico:'Histórico', backup:'Backup' };
