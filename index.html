@@ -121,6 +121,9 @@ let state = {
   fotoPreview: null,
   backupMsg: '',
   syncStatus: 'idle',
+  gerDate: null,
+  gerAcademia: 'todas',
+  alunosBusca: '',
 };
 
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -173,7 +176,7 @@ async function storageSet(key, value){
   try{
     const res = await fetch(JSONBIN_WRITE_URL, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY, 'X-Bin-Versioning': 'false' },
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY, 'X-Bin-Versioning': 'true' },
       body: value
     });
     if(!res.ok) throw new Error('status '+res.status);
@@ -186,7 +189,32 @@ async function storageSet(key, value){
 function saveDB(){
   dbSnapshotPendente = JSON.stringify(DB);
   state.syncStatus = 'saving';
+  salvarBackupAutomaticoLocal(dbSnapshotPendente);
   return enviarParaNuvem(dbSnapshotPendente);
+}
+function salvarBackupAutomaticoLocal(snapshot){
+  try{
+    const chave = 'jiu-presenca-auto-backups';
+    let lista = [];
+    try{ lista = JSON.parse(localStorage.getItem(chave)) || []; }catch(e){ lista = []; }
+    lista.unshift({ quando: new Date().toISOString(), dados: snapshot });
+    lista = lista.slice(0, 10);
+    localStorage.setItem(chave, JSON.stringify(lista));
+  }catch(e){ console.error('Não foi possível salvar o backup automático local', e); }
+}
+function getBackupsAutomaticos(){
+  try{ return JSON.parse(localStorage.getItem('jiu-presenca-auto-backups')) || []; }
+  catch(e){ return []; }
+}
+function baixarBackupAutomatico(idx){
+  const lista = getBackupsAutomaticos();
+  const item = lista[idx];
+  if(!item) return;
+  const blob = new Blob([item.dados], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'jiu-presenca-auto-backup-'+item.quando.slice(0,19).replace(/[:T]/g,'-')+'.json';
+  a.click();
 }
 async function enviarParaNuvem(snapshot){
   render();
@@ -324,11 +352,12 @@ function render(){ App(); }
 
 
 function renderHeader(){
-  const titles = { dashboard:'Jiu Presença', alunos:'Alunos', presenca:'Presença', progresso:'Progresso', historico:'Histórico', backup:'Backup' };
+  const titles = { dashboard:'Jiu Presença', alunos:'Alunos', presenca:'Presença', gerenciar:'Gerenciar Presença', progresso:'Progresso', historico:'Histórico', backup:'Backup' };
   const subs = {
     dashboard:'Visão geral das academias',
     alunos:'Cadastro e graduação',
     presenca:'Marcar presença do dia',
+    gerenciar:'Ver e excluir presenças por data',
     progresso:'Aulas até o próximo grau',
     historico:'Graus e faixas conquistadas',
     backup:'Exportar ou importar dados',
@@ -345,6 +374,7 @@ const NAV_ICONS = {
   dashboard: '<path d="M4 11.5 12 4l8 7.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9" stroke-linecap="round" stroke-linejoin="round"/>',
   alunos: '<circle cx="9" cy="8" r="3"/><path d="M3.5 20c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5" stroke-linecap="round"/><circle cx="17" cy="9" r="2.4"/><path d="M15.3 12.2c2 .2 3.7 1.8 4.2 4.3" stroke-linecap="round"/>',
   presenca: '<rect x="4" y="5.5" width="16" height="14.5" rx="3"/><path d="M4 9.5h16" stroke-linecap="round"/><path d="M8.5 13.3l1.8 1.8 3.8-3.8" stroke-linecap="round" stroke-linejoin="round"/>',
+  gerenciar: '<rect x="4" y="5.5" width="16" height="14.5" rx="3"/><path d="M4 9.5h16" stroke-linecap="round"/><path d="M9 14h6" stroke-linecap="round"/>',
   progresso: '<path d="M4 16l4.2-5 3.4 3 5.4-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 6.5h4v4" stroke-linecap="round" stroke-linejoin="round"/>',
   historico: '<circle cx="12" cy="12.5" r="7.5"/><path d="M12 8.3V13l3 2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3.5h6" stroke-linecap="round"/>',
   backup: '<path d="M7.5 15.5a4 4 0 0 1 .6-7.9 5 5 0 0 1 9.6 1.4A3.6 3.6 0 0 1 17 16" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 11v8" stroke-linecap="round"/><path d="M9.3 16.3 12 19l2.7-2.7" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -354,7 +384,7 @@ function iconSvg(name){
 }
 function renderNav(){
   const items = [
-    ['dashboard','Início'], ['alunos','Alunos'], ['presenca','Presença'], ['progresso','Progresso'], ['historico','Histórico'], ['backup','Backup']
+    ['dashboard','Início'], ['alunos','Alunos'], ['presenca','Presença'], ['gerenciar','Gerenciar'], ['progresso','Progresso'], ['historico','Histórico'], ['backup','Backup']
   ];
   return `</div><nav class="tabs">${items.map(([id,label])=>`<button class="${state.tab===id?'active':''}" onclick="setTab('${id}')">${iconSvg(id)}<span>${label}</span></button>`).join('')}</nav>`;
 }
@@ -363,6 +393,7 @@ function renderTab(){
   if(state.tab==='dashboard') return renderDashboard();
   if(state.tab==='alunos') return renderAlunos();
   if(state.tab==='presenca') return renderPresenca();
+  if(state.tab==='gerenciar') return renderGerenciar();
   if(state.tab==='progresso') return renderProgresso();
   if(state.tab==='historico') return renderHistorico();
   if(state.tab==='backup') return renderBackup();
@@ -427,6 +458,10 @@ function renderDashboard(){
 function renderAlunos(){
   const academias = getAcademias();
   let lista = DB.alunos.filter(a=> state.alunosFiltro==='todas' || a.academia===state.alunosFiltro);
+  if(state.alunosBusca && state.alunosBusca.trim()){
+    const termo = state.alunosBusca.trim().toLowerCase();
+    lista = lista.filter(a=> a.nome.toLowerCase().includes(termo));
+  }
   if(state.alunosOrdem==='alfabetica') lista = lista.slice().sort((a,b)=>a.nome.localeCompare(b.nome));
   else lista = lista.slice().sort((a,b)=>totalPresencasDe(b.id)-totalPresencasDe(a.id));
 
@@ -434,6 +469,9 @@ function renderAlunos(){
 
   return `
   <div class="card">
+    <input type="text" id="busca-aluno" placeholder="Buscar aluno por nome..." value="${escapeHtml(state.alunosBusca||'')}"
+      oninput="const _pos=this.selectionStart; state.alunosBusca=this.value; render(); const _el=document.getElementById('busca-aluno'); if(_el){ _el.focus(); _el.setSelectionRange(_pos,_pos); }"
+      style="width:100%;height:42px;border:1px solid #e2e8f0;border-radius:10px;padding:0 12px;font-size:14px;box-sizing:border-box;margin-bottom:10px;">
     <div class="flexwrap" style="margin-bottom:10px;">
       <span class="chip ${state.alunosFiltro==='todas'?'active':''}" onclick="state.alunosFiltro='todas'; render();">Todas</span>
       ${academias.map(a=>`<span class="chip ${state.alunosFiltro===a?'active':''}" onclick="state.alunosFiltro='${a}'; render();">${a}</span>`).join('')}
@@ -581,6 +619,59 @@ function confirmarPresencas(){
   render();
 }
 
+function renderGerenciar(){
+  if(!state.gerDate) state.gerDate = todayStr();
+  if(!state.gerAcademia) state.gerAcademia = 'todas';
+  const academias = getAcademias();
+  const alunosById = {};
+  DB.alunos.forEach(a=>{ alunosById[a.id] = a; });
+  const doDia = DB.presencas.filter(p=>p.data===state.gerDate);
+  const filtradas = doDia.filter(p=>{
+    if(state.gerAcademia==='todas') return true;
+    const al = alunosById[p.aluno_id];
+    return al && al.academia===state.gerAcademia;
+  }).sort((a,b)=>{
+    const na = alunosById[a.aluno_id]?alunosById[a.aluno_id].nome:'';
+    const nb = alunosById[b.aluno_id]?alunosById[b.aluno_id].nome:'';
+    return (a.horario||'').localeCompare(b.horario||'') || na.localeCompare(nb);
+  });
+  return `
+  <div class="card">
+    <label>Data</label>
+    <input type="date" value="${state.gerDate}" onchange="state.gerDate=this.value; render();" style="width:100%;height:42px;border:1px solid #e2e8f0;border-radius:10px;padding:0 10px;font-size:14px;box-sizing:border-box;">
+  </div>
+  <div class="card">
+    <label>Academia</label>
+    <select onchange="state.gerAcademia=this.value; render();">
+      <option value="todas" ${state.gerAcademia==='todas'?'selected':''}>Todas as academias</option>
+      ${academias.map(a=>`<option value="${a}" ${state.gerAcademia===a?'selected':''}>${a}</option>`).join('')}
+    </select>
+  </div>
+  <div class="card">
+    <div class="between" style="margin-bottom:8px;">
+      <h2 style="margin:0;">Presenças</h2>
+      <span class="note">${fmtBR(state.gerDate)} · ${filtradas.length} registro(s)</span>
+    </div>
+    ${filtradas.length===0?`<div class="empty">Nenhuma presença registrada nesse dia.</div>`:filtradas.map(p=>{
+      const al = alunosById[p.aluno_id];
+      return `<div class="list-item">
+        <div class="avatar">${al&&al.foto_url?`<img src="${al.foto_url}">`:getInitials(al?al.nome:'?')}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:14px;">${escapeHtml(al?al.nome:'Aluno excluído')}</div>
+          <div class="note">${al?escapeHtml(al.academia):''}${p.horario?' · '+p.horario:''}</div>
+        </div>
+        <button class="btn-icon" style="color:#dc2626;" onclick="excluirPresenca(${p.id})" title="Excluir presença">&#10005;</button>
+      </div>`;
+    }).join('')}
+  </div>
+  `;
+}
+function excluirPresenca(id){
+  if(!confirm('Excluir esta presença?')) return;
+  DB.presencas = DB.presencas.filter(p=>p.id!==id);
+  saveDB(); render();
+}
+
 function renderProgresso(){
   let lista = DB.alunos.slice().sort((a,b)=>a.nome.localeCompare(b.nome));
   return `
@@ -639,7 +730,22 @@ function renderHistorico(){
 }
 
 function renderBackup(){
+  const autoBackups = getBackupsAutomaticos();
   return `
+  <div class="card">
+    <h2>Backups automáticos</h2>
+    <p class="note" style="margin-bottom:10px;">Toda vez que algo muda no app, uma cópia é guardada sozinha aqui neste navegador (as 10 mais recentes), além de ir para a nuvem. Não precisa fazer nada.</p>
+    ${autoBackups.length===0?`<div class="empty">Nenhum backup automático ainda.</div>`:autoBackups.map((b,i)=>{
+      const d = new Date(b.quando);
+      return `<div class="list-item">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;">${d.toLocaleString('pt-BR')}</div>
+        </div>
+        <button class="btn-icon" title="Baixar" onclick="baixarBackupAutomatico(${i})">&#8681;</button>
+        <button class="btn-icon" title="Restaurar este backup" onclick="restaurarBackupAutomatico(${i})">&#8635;</button>
+      </div>`;
+    }).join('')}
+  </div>
   <div class="card">
     <h2>Exportar</h2>
     <p class="note" style="margin-bottom:10px;">Baixa um arquivo .json com todos os alunos e presenças, para guardar ou levar para outro lugar.</p>
@@ -655,6 +761,18 @@ function renderBackup(){
     <p class="note">${DB.alunos.length} alunos, ${DB.presencas.length} presenças, ${DB.promocoes.length} promoções registradas nesta conta.</p>
   </div>
   `;
+}
+function restaurarBackupAutomatico(idx){
+  const lista = getBackupsAutomaticos();
+  const item = lista[idx];
+  if(!item) return;
+  if(!confirm('Isso substitui os dados atuais pelos deste backup ('+new Date(item.quando).toLocaleString('pt-BR')+'). Continuar?')) return;
+  try{
+    DB = JSON.parse(item.dados);
+    saveDB();
+    alert('Backup restaurado.');
+    render();
+  }catch(e){ alert('Não foi possível restaurar este backup.'); }
 }
 function exportarBackup(){
   const data = { version:'1.0', exported_at: new Date().toISOString(), alunos: DB.alunos, presencas: DB.presencas, promocoes: DB.promocoes };
