@@ -654,8 +654,14 @@ function importarBackup(file){
         const existing = DB.presencas.find(x=>x.aluno_id===alunoId && x.data===p.data && x.horario===p.horario);
         if(!existing){ DB.presencas.push({id: DB.nextPresencaId++, aluno_id:alunoId, data:p.data, horario:p.horario}); presCount++; }
       });
+      let promoCount = 0;
+      (body.promocoes||[]).forEach(pr=>{
+        const alunoId = idMap[pr.aluno_id] !== undefined ? idMap[pr.aluno_id] : pr.aluno_id;
+        const existing = DB.promocoes.find(x=>x.aluno_id===alunoId && x.data_promocao===pr.data_promocao);
+        if(!existing){ DB.promocoes.push(Object.assign({}, pr, {id: DB.nextPromocaoId++, aluno_id:alunoId})); promoCount++; }
+      });
       saveDB();
-      state.backupMsg = 'Importado: '+alunosCount+' aluno(s) e '+presCount+' presença(s) novos.';
+      state.backupMsg = 'Importado: '+alunosCount+' aluno(s), '+presCount+' presença(s) e '+promoCount+' promoção(ões) novos.';
       render();
     }catch(err){ state.backupMsg = 'Erro ao ler o arquivo: '+err.message; render(); }
   };
