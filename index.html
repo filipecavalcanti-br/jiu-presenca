@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Jiu Presença</title>
+<style>
+  :root{
+    --blue:#2563eb; --blue-dark:#1d4ed8; --green:#16a34a; --red:#dc2626;
+    --bg:#f1f5f9; --card:#ffffff; --border:#e2e8f0; --text:#0f172a; --text2:#64748b;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#f8fafc,#eff6ff);color:var(--text);}
+  #app{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:128px;position:relative;}
+  .px{padding-left:16px;padding-right:16px;}
+  h1{font-size:22px;font-weight:700;margin:0;}
+  h2{font-size:16px;font-weight:600;margin:0 0 10px;}
+  .sub{color:var(--text2);font-size:13px;margin:2px 0 0;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .row{display:flex;align-items:center;gap:10px;}
+  .between{display:flex;align-items:center;justify-content:space-between;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+  select,input[type=text],input[type=number],input[type=date]{
+    width:100%;height:40px;border:1px solid var(--border);border-radius:10px;padding:0 10px;font-size:14px;background:#fff;color:var(--text);
+  }
+  label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px;}
+  .field{margin-bottom:12px;}
+  button{font-family:inherit;cursor:pointer;}
+  .btn{border:none;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:600;background:#eef2f7;color:var(--text);}
+  .btn-block{width:100%;}
+  .btn-primary{background:var(--blue);color:#fff;}
+  .btn-primary:hover{background:var(--blue-dark);}
+  .btn-green{background:var(--green);color:#fff;}
+  .btn-outline{background:#fff;border:1px solid var(--border);}
+  .btn-icon{width:36px;height:36px;border-radius:9px;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;padding:0;font-size:16px;}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#e2e8f0;color:#334155;}
+  .badge-green{background:#dcfce7;color:#166534;}
+  .badge-blue{background:#dbeafe;color:#1e40af;}
+  .badge-yellow{background:#fef9c3;color:#854d0e;}
+  header.top{position:sticky;top:0;background:rgba(248,250,252,.92);backdrop-filter:blur(6px);z-index:5;padding:14px 16px 10px;border-bottom:1px solid var(--border);}
+  nav.tabs{
+    position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
+    width:calc(100% - 28px);max-width:452px;
+    background:rgba(255,255,255,.68);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+    border:1px solid rgba(255,255,255,.7);border-radius:20px;
+    box-shadow:0 12px 32px rgba(15,23,42,.16),0 2px 6px rgba(15,23,42,.06);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:6px;gap:2px;z-index:30;
+  }
+  nav.tabs button{
+    flex:1;background:none;border:none;padding:7px 2px 6px;color:var(--text2);
+    display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:14px;
+    transition:background .15s ease,color .15s ease,transform .1s ease;
+  }
+  nav.tabs button svg{width:21px;height:21px;display:block;}
+  nav.tabs button span{font-size:10px;font-weight:600;letter-spacing:.1px;}
+  nav.tabs button.active{color:var(--blue);background:rgba(37,99,235,.12);}
+  nav.tabs button:active{transform:scale(.92);}
+  .avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#4338ca);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;overflow:hidden;}
+  .avatar img{width:100%;height:100%;object-fit:cover;}
+  .faixa{height:12px;width:96px;border-radius:3px;position:relative;overflow:hidden;border:1px solid #cbd5e1;flex-shrink:0;}
+  .faixa .stripe{position:absolute;left:0;right:0;height:3px;top:4.5px;}
+  .faixa .tip{position:absolute;right:0;top:0;bottom:0;width:26px;background:#0f172a;display:flex;align-items:center;justify-content:center;gap:1px;padding:0 2px;}
+  .faixa .grau{width:2px;height:8px;border-radius:1px;background:transparent;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);display:flex;align-items:flex-end;justify-content:center;z-index:50;}
+  .modal{background:#fff;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .empty{text-align:center;color:var(--text2);font-size:13px;padding:28px 0;}
+  .stat{background:#f8fafc;border-radius:12px;padding:12px;}
+  .stat .n{font-size:22px;font-weight:700;}
+  .stat .l{font-size:12px;color:var(--text2);}
+  .list-item{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;background:#fff;}
+  .promo-item{padding:10px 12px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;}
+  .flexwrap{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:#fff;font-size:12px;font-weight:600;}
+  .chip.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .fab{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));right:16px;z-index:20;background:#0f172a;color:#fff;border:none;border-radius:999px;padding:13px 18px;font-weight:700;font-size:14px;box-shadow:0 6px 18px rgba(15,23,42,.28);}
+  .textbtn{background:none;border:none;color:var(--blue);font-size:13px;font-weight:600;padding:0;}
+  .divider{height:1px;background:var(--border);margin:10px 0;}
+  .note{font-size:12px;color:var(--text2);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const SEED_ALUNOS = [{"id":1,"nome":"BERNARDO","idade":11,"academia":"VillaFight","graduacao":"branca","graus":4,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":26,"created_at":"2026-02-05 03:44:17","updated_at":"2026-05-19 22:38:07"},{"id":2,"nome":"CLARICE","idade":11,"academia":"VillaFight","graduacao":"amarela-branca","graus":1,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":9,"created_at":"2026-02-05 03:44:46","updated_at":"2026-06-12 16:59:35"},{"id":3,"nome":"MARIA CLARA","idade":null,"academia":"VillaFight","graduacao":"branca","graus":3,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":18,"created_at":"2026-02-05 03:45:14","updated_at":"2026-05-05 22:25:09"},{"id":4,"nome":"LUAN HELDER","idade":11,"academia":"VillaFight","graduacao":"branca","graus":3,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":23,"created_at":"2026-02-05 03:45:42","updated_at":"2026-05-26 22:35:14"},{"id":5,"nome":"ARTHUR GRATZ","idade":9,"academia":"VillaFight","graduacao":"amarela-branca","graus":1,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":11,"created_at":"2026-02-05 03:46:09","updated_at":"2026-04-16 22:30:34"},{"id":6,"nome":"HENRIQUE FAÉ","idade":6,"academia":"VillaFight","graduacao":"cinza-branca","graus":3,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":17,"created_at":"2026-02-05 03:46:33","updated_at":"2026-04-16 22:31:40"},{"id":7,"nome":"PIETRA","idade":11,"academia":"VillaFight","graduacao":"branca","graus":4,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":27,"created_at":"2026-02-05 03:46:54","updated_at":"2026-05-26 22:34:48"},{"id":8,"nome":"WENDY","idade":10,"academia":"VillaFight","graduacao":"branca","graus":1,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":0,"created_at":"2026-02-05 03:47:24","updated_at":"2026-02-05 03:47:24"},{"id":9,"nome":"ANTONIO","idade":6,"academia":"VillaFight","graduacao":"branca","graus":2,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":8,"created_at":"2026-02-05 03:48:14","updated_at":"2026-03-13 13:36:49"},{"id":10,"nome":"JOÃO","idade":9,"academia":"VillaFight","graduacao":"branca","graus":2,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":8,"created_at":"2026-02-05 03:48:35","updated_at":"2026-03-13 13:37:04"},{"id":11,"nome":"PEDRO","idade":7,"academia":"VillaFight","graduacao":"cinza-branca","graus":2,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":18,"created_at":"2026-02-05 03:49:06","updated_at":"2026-05-26 22:34:58"},{"id":12,"nome":"LORENZZO","idade":8,"academia":"VillaFight","graduacao":"amarela-branca","graus":2,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":19,"created_at":"2026-02-05 03:49:44","updated_at":"2026-05-05 22:25:17"},{"id":13,"nome":"ISAAC","idade":8,"academia":"VillaFight","graduacao":"amarela-branca","graus":2,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":16,"created_at":"2026-02-05 03:50:03","updated_at":"2026-04-16 22:29:59"},{"id":14,"nome":"HENRIQUE SCAPIN","idade":6,"academia":"VillaFight","graduacao":"cinza-branca","graus":3,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":26,"created_at":"2026-02-05 03:50:45","updated_at":"2026-05-26 22:35:22"},{"id":15,"nome":"OLAVO","idade":11,"academia":"VillaFight","graduacao":"cinza-branca","graus":0,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":0,"created_at":"2026-02-05 03:51:15","updated_at":"2026-02-05 03:51:15"},{"id":16,"nome":"MURILO","idade":11,"academia":"VillaFight","graduacao":"cinza","graus":0,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":0,"created_at":"2026-02-05 03:51:30","updated_at":"2026-02-05 03:51:30"},{"id":17,"nome":"BENTO","idade":6,"academia":"VillaFight","graduacao":"cinza-branca","graus":3,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":24,"created_at":"2026-02-05 03:51:59","updated_at":"2026-06-17 00:06:02"},{"id":18,"nome":"LUIZA","idade":6,"academia":"VillaFight","graduacao":"branca","graus":1,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":0,"created_at":"2026-02-05 03:52:16","updated_at":"2026-02-05 03:52:16"},{"id":19,"nome":"RAFAEL","idade":11,"academia":"VillaFight","graduacao":"branca","graus":0,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":0,"created_at":"2026-02-05 03:52:33","updated_at":"2026-02-05 03:52:33"},{"id":20,"nome":"MIGUEL","idade":6,"academia":"VillaFight","graduacao":"branca","graus":4,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":29,"created_at":"2026-02-05 03:52:53","updated_at":"2026-06-10 03:47:40"},{"id":21,"nome":"VICENTE","idade":10,"academia":"027FightClub","graduacao":"branca","graus":4,"graus_vermelhos":2,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":20,"created_at":"2026-02-05 03:53:19","updated_at":"2026-06-15 22:54:02"},{"id":22,"nome":"CALEBE","idade":11,"academia":"027FightClub","graduacao":"branca","graus":4,"graus_vermelhos":2,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":23,"created_at":"2026-02-05 03:53:40","updated_at":"2026-06-15 22:54:15"},{"id":23,"nome":"PAULO","idade":4,"academia":"027FightClub","graduacao":"branca","graus":3,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":24,"created_at":"2026-02-05 03:53:56","updated_at":"2026-06-15 22:54:10"},{"id":24,"nome":"IVAN","idade":5,"academia":"027FightClub","graduacao":"cinza-branca","graus":3,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":25,"created_at":"2026-02-05 03:54:25","updated_at":"2026-05-18 13:04:29"},{"id":25,"nome":"TITO","idade":9,"academia":"027FightClub","graduacao":"cinza","graus":3,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":25,"created_at":"2026-02-05 03:55:03","updated_at":"2026-05-18 13:04:35"},{"id":26,"nome":"RAFA","idade":9,"academia":"027FightClub","graduacao":"branca","graus":3,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":0,"created_at":"2026-02-05 03:55:30","updated_at":"2026-02-05 03:55:30"},{"id":27,"nome":"DAVI","idade":9,"academia":"027FightClub","graduacao":"branca","graus":3,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":0,"created_at":"2026-02-05 03:55:48","updated_at":"2026-02-05 03:55:48"},{"id":28,"nome":"BERNARDO","idade":9,"academia":"027FightClub","graduacao":"branca","graus":4,"graus_vermelhos":2,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":23,"created_at":"2026-02-05 03:56:13","updated_at":"2026-05-18 13:04:27"},{"id":29,"nome":"PEDRO","idade":5,"academia":"027FightClub","graduacao":"branca","graus":2,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":0,"created_at":"2026-02-05 03:56:34","updated_at":"2026-02-05 03:56:34"},{"id":32,"nome":"João Valle ","idade":3,"academia":"VillaFight","graduacao":"branca","graus":2,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":18,"created_at":"2026-02-06 02:01:28","updated_at":"2026-06-17 00:05:49"},{"id":33,"nome":"Caíque Saraiva ","idade":3,"academia":"VillaFight","graduacao":"branca","graus":1,"graus_vermelhos":0,"foto_url":null,"data_nascimento":"2022-11-08","presencas_na_ultima_promocao":8,"created_at":"2026-02-10 22:39:16","updated_at":"2026-03-27 00:49:27"},{"id":34,"nome":"Benjamin ","idade":7,"academia":"027FightClub","graduacao":"branca","graus":3,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":16,"created_at":"2026-02-12 10:38:29","updated_at":"2026-06-15 22:54:19"},{"id":35,"nome":"Bernardo BIASUTTI","idade":12,"academia":"VillaFight","graduacao":"amarela-branca","graus":1,"graus_vermelhos":0,"foto_url":null,"data_nascimento":"2014-02-12","presencas_na_ultima_promocao":2,"created_at":"2026-02-12 18:49:07","updated_at":"2026-03-13 14:41:48"},{"id":36,"nome":"Helena","idade":null,"academia":"VillaFight","graduacao":"branca","graus":1,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":8,"created_at":"2026-02-20 01:24:21","updated_at":"2026-05-13 00:55:20"},{"id":37,"nome":"LORENZO","idade":null,"academia":"VillaFight","graduacao":"branca","graus":3,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":25,"created_at":"2026-03-05 22:34:21","updated_at":"2026-07-09 23:54:40"},{"id":40,"nome":"Maria Laura ","idade":8,"academia":"VillaFight","graduacao":"branca","graus":1,"graus_vermelhos":0,"foto_url":null,"data_nascimento":"2017-06-16","presencas_na_ultima_promocao":7,"created_at":"2026-04-16 22:38:10","updated_at":"2026-05-26 22:35:10"},{"id":41,"nome":"May","idade":null,"academia":"VillaFight","graduacao":"branca","graus":1,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":7,"created_at":"2026-05-04 22:37:18","updated_at":"2026-05-26 22:35:07"},{"id":42,"nome":"Vini","idade":null,"academia":"VillaFight","graduacao":"branca","graus":1,"graus_vermelhos":0,"foto_url":null,"data_nascimento":null,"presencas_na_ultima_promocao":4,"created_at":"2026-05-13 00:53:31","updated_at":"2026-05-26 22:34:54"}];
+const SEED_PRESENCAS = [{"id":1,"aluno_id":1,"data":"2026-02-03","horario":"18:30"},{"id":2,"aluno_id":1,"data":"2026-02-05","horario":"18:30"},{"id":3,"aluno_id":1,"data":"2026-02-10","horario":"18:30"},{"id":4,"aluno_id":1,"data":"2026-02-12","horario":"18:30"},{"id":5,"aluno_id":1,"data":"2026-02-19","horario":"18:30"},{"id":6,"aluno_id":1,"data":"2026-02-24","horario":"18:30"},{"id":7,"aluno_id":1,"data":"2026-02-26","horario":"18:30"},{"id":8,"aluno_id":1,"data":"2026-03-03","horario":"18:30"},{"id":9,"aluno_id":1,"data":"2026-03-05","horario":"18:30"},{"id":10,"aluno_id":1,"data":"2026-03-10","horario":"18:30"},{"id":11,"aluno_id":1,"data":"2026-03-12","horario":"18:30"},{"id":12,"aluno_id":1,"data":"2026-03-17","horario":"18:30"},{"id":13,"aluno_id":1,"data":"2026-03-19","horario":"18:30"},{"id":14,"aluno_id":1,"data":"2026-03-24","horario":"18:30"},{"id":15,"aluno_id":1,"data":"2026-03-26","horario":"18:30"},{"id":16,"aluno_id":1,"data":"2026-04-02","horario":"18:30"},{"id":17,"aluno_id":1,"data":"2026-04-07","horario":"18:30"},{"id":18,"aluno_id":1,"data":"2026-04-09","horario":"18:30"},{"id":19,"aluno_id":1,"data":"2026-04-14","horario":"18:30"},{"id":20,"aluno_id":1,"data":"2026-04-16","horario":"18:30"},{"id":21,"aluno_id":1,"data":"2026-04-28","horario":"18:30"},{"id":22,"aluno_id":1,"data":"2026-05-05","horario":"18:30"},{"id":23,"aluno_id":1,"data":"2026-05-07","horario":"18:30"},{"id":24,"aluno_id":1,"data":"2026-05-12","horario":"18:30"},{"id":25,"aluno_id":1,"data":"2026-05-14","horario":"18:30"},{"id":26,"aluno_id":1,"data":"2026-05-19","horario":"18:30"},{"id":27,"aluno_id":1,"data":"2026-05-26","horario":"18:30"},{"id":28,"aluno_id":1,"data":"2026-05-28","horario":"18:30"},{"id":29,"aluno_id":1,"data":"2026-06-04","horario":"18:30"},{"id":30,"aluno_id":1,"data":"2026-06-16","horario":"18:30"},{"id":31,"aluno_id":1,"data":"2026-06-18","horario":"18:30"},{"id":32,"aluno_id":1,"data":"2026-06-23","horario":"18:30"},{"id":33,"aluno_id":2,"data":"2026-02-03","horario":"18:30"},{"id":34,"aluno_id":2,"data":"2026-02-12","horario":"18:30"},{"id":35,"aluno_id":2,"data":"2026-03-17","horario":"18:30"},{"id":36,"aluno_id":2,"data":"2026-05-07","horario":"18:30"},{"id":37,"aluno_id":2,"data":"2026-05-12","horario":"18:30"},{"id":38,"aluno_id":2,"data":"2026-05-14","horario":"18:30"},{"id":39,"aluno_id":2,"data":"2026-05-26","horario":"18:30"},{"id":40,"aluno_id":2,"data":"2026-06-04","horario":"18:30"},{"id":41,"aluno_id":2,"data":"2026-06-10","horario":"18:30"},{"id":42,"aluno_id":3,"data":"2026-02-03","horario":"18:30"},{"id":43,"aluno_id":3,"data":"2026-02-05","horario":"18:30"},{"id":44,"aluno_id":3,"data":"2026-02-19","horario":"18:30"},{"id":45,"aluno_id":3,"data":"2026-02-24","horario":"18:30"},{"id":46,"aluno_id":3,"data":"2026-03-03","horario":"18:30"},{"id":47,"aluno_id":3,"data":"2026-03-05","horario":"18:30"},{"id":48,"aluno_id":3,"data":"2026-03-12","horario":"18:30"},{"id":49,"aluno_id":3,"data":"2026-03-17","horario":"18:30"},{"id":50,"aluno_id":3,"data":"2026-03-24","horario":"18:30"},{"id":51,"aluno_id":3,"data":"2026-03-26","horario":"18:30"},{"id":52,"aluno_id":3,"data":"2026-03-31","horario":"18:30"},{"id":53,"aluno_id":3,"data":"2026-04-07","horario":"18:30"},{"id":54,"aluno_id":3,"data":"2026-04-09","horario":"18:30"},{"id":55,"aluno_id":3,"data":"2026-04-14","horario":"18:30"},{"id":56,"aluno_id":3,"data":"2026-04-16","horario":"18:30"},{"id":57,"aluno_id":3,"data":"2026-04-28","horario":"18:30"},{"id":58,"aluno_id":3,"data":"2026-04-30","horario":"18:30"},{"id":59,"aluno_id":3,"data":"2026-05-05","horario":"18:30"},{"id":60,"aluno_id":3,"data":"2026-05-28","horario":"18:30"},{"id":61,"aluno_id":3,"data":"2026-06-16","horario":"18:30"},{"id":62,"aluno_id":3,"data":"2026-06-18","horario":"18:30"},{"id":63,"aluno_id":3,"data":"2026-06-23","horario":"18:30"},{"id":64,"aluno_id":4,"data":"2026-02-03","horario":"18:30"},{"id":65,"aluno_id":4,"data":"2026-02-05","horario":"18:30"},{"id":66,"aluno_id":4,"data":"2026-02-10","horario":"18:30"},{"id":67,"aluno_id":4,"data":"2026-02-12","horario":"18:30"},{"id":68,"aluno_id":4,"data":"2026-02-19","horario":"18:30"},{"id":69,"aluno_id":4,"data":"2026-02-26","horario":"18:30"},{"id":70,"aluno_id":4,"data":"2026-03-03","horario":"18:30"},{"id":71,"aluno_id":4,"data":"2026-03-05","horario":"18:30"},{"id":72,"aluno_id":4,"data":"2026-03-10","horario":"18:30"},{"id":73,"aluno_id":4,"data":"2026-03-12","horario":"18:30"},{"id":74,"aluno_id":4,"data":"2026-03-17","horario":"18:30"},{"id":75,"aluno_id":4,"data":"2026-03-19","horario":"18:30"},{"id":76,"aluno_id":4,"data":"2026-03-24","horario":"18:30"},{"id":77,"aluno_id":4,"data":"2026-03-26","horario":"18:30"},{"id":78,"aluno_id":4,"data":"2026-03-31","horario":"18:30"},{"id":79,"aluno_id":4,"data":"2026-04-02","horario":"18:30"},{"id":80,"aluno_id":4,"data":"2026-04-07","horario":"18:30"},{"id":81,"aluno_id":4,"data":"2026-04-09","horario":"18:30"},{"id":82,"aluno_id":4,"data":"2026-04-14","horario":"18:30"},{"id":83,"aluno_id":4,"data":"2026-04-16","horario":"18:30"},{"id":84,"aluno_id":4,"data":"2026-04-28","horario":"18:30"},{"id":85,"aluno_id":4,"data":"2026-05-19","horario":"18:30"},{"id":86,"aluno_id":4,"data":"2026-05-21","horario":"18:30"},{"id":87,"aluno_id":4,"data":"2026-05-26","horario":"18:30"},{"id":88,"aluno_id":4,"data":"2026-05-28","horario":"18:30"},{"id":89,"aluno_id":4,"data":"2026-06-04","horario":"18:30"},{"id":90,"aluno_id":4,"data":"2026-06-10","horario":"18:30"},{"id":91,"aluno_id":4,"data":"2026-06-23","horario":"18:30"},{"id":92,"aluno_id":5,"data":"2026-02-05","horario":"18:30"},{"id":93,"aluno_id":5,"data":"2026-02-12","horario":"18:30"},{"id":94,"aluno_id":5,"data":"2026-03-12","horario":"18:30"},{"id":95,"aluno_id":5,"data":"2026-03-17","horario":"18:30"},{"id":96,"aluno_id":5,"data":"2026-03-19","horario":"18:30"},{"id":97,"aluno_id":5,"data":"2026-03-24","horario":"18:30"},{"id":98,"aluno_id":5,"data":"2026-03-26","horario":"18:30"},{"id":99,"aluno_id":5,"data":"2026-03-31","horario":"18:30"},{"id":100,"aluno_id":5,"data":"2026-04-09","horario":"18:30"},{"id":101,"aluno_id":5,"data":"2026-04-14","horario":"18:30"},{"id":102,"aluno_id":5,"data":"2026-04-16","horario":"18:30"},{"id":103,"aluno_id":5,"data":"2026-05-05","horario":"18:30"},{"id":104,"aluno_id":5,"data":"2026-05-12","horario":"18:30"},{"id":105,"aluno_id":5,"data":"2026-05-19","horario":"18:30"},{"id":106,"aluno_id":5,"data":"2026-05-26","horario":"18:30"},{"id":107,"aluno_id":5,"data":"2026-05-28","horario":"18:30"},{"id":108,"aluno_id":5,"data":"2026-06-10","horario":"18:30"},{"id":109,"aluno_id":6,"data":"2026-02-05","horario":"18:30"},{"id":110,"aluno_id":6,"data":"2026-02-10","horario":"18:30"},{"id":111,"aluno_id":6,"data":"2026-02-12","horario":"18:30"},{"id":112,"aluno_id":6,"data":"2026-02-24","horario":"18:30"},{"id":113,"aluno_id":6,"data":"2026-02-26","horario":"18:30"},{"id":114,"aluno_id":6,"data":"2026-03-03","horario":"18:30"},{"id":115,"aluno_id":6,"data":"2026-03-05","horario":"18:30"},{"id":116,"aluno_id":6,"data":"2026-03-12","horario":"18:30"},{"id":117,"aluno_id":6,"data":"2026-03-17","horario":"18:30"},{"id":118,"aluno_id":6,"data":"2026-03-19","horario":"18:30"},{"id":119,"aluno_id":6,"data":"2026-03-24","horario":"18:30"},{"id":120,"aluno_id":6,"data":"2026-03-26","horario":"18:30"},{"id":121,"aluno_id":6,"data":"2026-03-31","horario":"18:30"},{"id":122,"aluno_id":6,"data":"2026-04-07","horario":"18:30"},{"id":123,"aluno_id":6,"data":"2026-04-09","horario":"18:30"},{"id":124,"aluno_id":6,"data":"2026-04-14","horario":"18:30"},{"id":125,"aluno_id":6,"data":"2026-04-16","horario":"18:30"},{"id":126,"aluno_id":6,"data":"2026-05-26","horario":"18:30"},{"id":127,"aluno_id":6,"data":"2026-05-28","horario":"18:30"},{"id":128,"aluno_id":6,"data":"2026-06-04","horario":"18:30"},{"id":129,"aluno_id":6,"data":"2026-06-10","horario":"18:30"},{"id":130,"aluno_id":6,"data":"2026-06-16","horario":"18:30"},{"id":131,"aluno_id":6,"data":"2026-06-18","horario":"18:30"},{"id":132,"aluno_id":6,"data":"2026-06-23","horario":"18:30"},{"id":133,"aluno_id":7,"data":"2026-02-10","horario":"18:30"},{"id":134,"aluno_id":7,"data":"2026-02-12","horario":"18:30"},{"id":135,"aluno_id":7,"data":"2026-02-19","horario":"18:30"},{"id":136,"aluno_id":7,"data":"2026-02-24","horario":"18:30"},{"id":137,"aluno_id":7,"data":"2026-02-26","horario":"18:30"},{"id":138,"aluno_id":7,"data":"2026-03-03","horario":"18:30"},{"id":139,"aluno_id":7,"data":"2026-03-05","horario":"18:30"},{"id":140,"aluno_id":7,"data":"2026-03-10","horario":"18:30"},{"id":141,"aluno_id":7,"data":"2026-03-12","horario":"18:30"},{"id":142,"aluno_id":7,"data":"2026-03-17","horario":"18:30"},{"id":143,"aluno_id":7,"data":"2026-03-19","horario":"18:30"},{"id":144,"aluno_id":7,"data":"2026-03-24","horario":"18:30"},{"id":145,"aluno_id":7,"data":"2026-03-26","horario":"18:30"},{"id":146,"aluno_id":7,"data":"2026-03-31","horario":"18:30"},{"id":147,"aluno_id":7,"data":"2026-04-02","horario":"18:30"},{"id":148,"aluno_id":7,"data":"2026-04-07","horario":"18:30"},{"id":149,"aluno_id":7,"data":"2026-04-09","horario":"18:30"},{"id":150,"aluno_id":7,"data":"2026-04-14","horario":"18:30"},{"id":151,"aluno_id":7,"data":"2026-04-16","horario":"18:30"},{"id":152,"aluno_id":7,"data":"2026-04-28","horario":"18:30"},{"id":153,"aluno_id":7,"data":"2026-04-30","horario":"18:30"},{"id":154,"aluno_id":7,"data":"2026-05-05","horario":"18:30"},{"id":155,"aluno_id":7,"data":"2026-05-07","horario":"18:30"},{"id":156,"aluno_id":7,"data":"2026-05-12","horario":"18:30"},{"id":157,"aluno_id":7,"data":"2026-05-14","horario":"18:30"},{"id":158,"aluno_id":7,"data":"2026-05-19","horario":"18:30"},{"id":159,"aluno_id":7,"data":"2026-05-21","horario":"18:30"},{"id":160,"aluno_id":7,"data":"2026-05-26","horario":"18:30"},{"id":161,"aluno_id":7,"data":"2026-05-28","horario":"18:30"},{"id":162,"aluno_id":7,"data":"2026-06-04","horario":"18:30"},{"id":163,"aluno_id":7,"data":"2026-06-10","horario":"18:30"},{"id":164,"aluno_id":7,"data":"2026-06-16","horario":"18:30"},{"id":165,"aluno_id":7,"data":"2026-06-18","horario":"18:30"},{"id":166,"aluno_id":7,"data":"2026-06-23","horario":"18:30"},{"id":167,"aluno_id":9,"data":"2026-02-03","horario":"18:30"},{"id":168,"aluno_id":9,"data":"2026-02-05","horario":"18:30"},{"id":169,"aluno_id":9,"data":"2026-02-12","horario":"18:30"},{"id":170,"aluno_id":9,"data":"2026-02-24","horario":"18:30"},{"id":171,"aluno_id":9,"data":"2026-02-26","horario":"18:30"},{"id":172,"aluno_id":9,"data":"2026-03-03","horario":"18:30"},{"id":173,"aluno_id":9,"data":"2026-03-10","horario":"18:30"},{"id":174,"aluno_id":9,"data":"2026-03-12","horario":"18:30"},{"id":175,"aluno_id":9,"data":"2026-03-17","horario":"18:30"},{"id":176,"aluno_id":9,"data":"2026-03-24","horario":"18:30"},{"id":177,"aluno_id":9,"data":"2026-03-31","horario":"18:30"},{"id":178,"aluno_id":9,"data":"2026-04-02","horario":"18:30"},{"id":179,"aluno_id":9,"data":"2026-04-16","horario":"18:30"},{"id":180,"aluno_id":10,"data":"2026-02-03","horario":"18:30"},{"id":181,"aluno_id":10,"data":"2026-02-05","horario":"18:30"},{"id":182,"aluno_id":10,"data":"2026-02-12","horario":"18:30"},{"id":183,"aluno_id":10,"data":"2026-02-24","horario":"18:30"},{"id":184,"aluno_id":10,"data":"2026-02-26","horario":"18:30"},{"id":185,"aluno_id":10,"data":"2026-03-03","horario":"18:30"},{"id":186,"aluno_id":10,"data":"2026-03-10","horario":"18:30"},{"id":187,"aluno_id":10,"data":"2026-03-12","horario":"18:30"},{"id":188,"aluno_id":10,"data":"2026-03-17","horario":"18:30"},{"id":189,"aluno_id":10,"data":"2026-03-24","horario":"18:30"},{"id":190,"aluno_id":10,"data":"2026-03-31","horario":"18:30"},{"id":191,"aluno_id":10,"data":"2026-04-02","horario":"18:30"},{"id":192,"aluno_id":10,"data":"2026-04-16","horario":"18:30"},{"id":193,"aluno_id":11,"data":"2026-02-03","horario":"18:30"},{"id":194,"aluno_id":11,"data":"2026-02-05","horario":"18:30"},{"id":195,"aluno_id":11,"data":"2026-02-10","horario":"18:30"},{"id":196,"aluno_id":11,"data":"2026-02-24","horario":"18:30"},{"id":197,"aluno_id":11,"data":"2026-03-03","horario":"18:30"},{"id":198,"aluno_id":11,"data":"2026-03-05","horario":"18:30"},{"id":199,"aluno_id":11,"data":"2026-03-10","horario":"18:30"},{"id":200,"aluno_id":11,"data":"2026-03-17","horario":"18:30"},{"id":201,"aluno_id":11,"data":"2026-03-19","horario":"18:30"},{"id":202,"aluno_id":11,"data":"2026-03-31","horario":"18:30"},{"id":203,"aluno_id":11,"data":"2026-04-02","horario":"18:30"},{"id":204,"aluno_id":11,"data":"2026-04-09","horario":"18:30"},{"id":205,"aluno_id":11,"data":"2026-04-14","horario":"18:30"},{"id":206,"aluno_id":11,"data":"2026-04-16","horario":"18:30"},{"id":207,"aluno_id":11,"data":"2026-05-07","horario":"18:30"},{"id":208,"aluno_id":11,"data":"2026-05-14","horario":"18:30"},{"id":209,"aluno_id":11,"data":"2026-05-19","horario":"18:30"},{"id":210,"aluno_id":11,"data":"2026-05-21","horario":"18:30"},{"id":211,"aluno_id":11,"data":"2026-05-26","horario":"18:30"},{"id":212,"aluno_id":11,"data":"2026-05-28","horario":"18:30"},{"id":213,"aluno_id":11,"data":"2026-06-10","horario":"18:30"},{"id":214,"aluno_id":11,"data":"2026-06-16","horario":"18:30"},{"id":215,"aluno_id":11,"data":"2026-06-18","horario":"18:30"},{"id":216,"aluno_id":11,"data":"2026-06-23","horario":"18:30"},{"id":217,"aluno_id":12,"data":"2026-02-03","horario":"18:30"},{"id":218,"aluno_id":12,"data":"2026-02-05","horario":"18:30"},{"id":219,"aluno_id":12,"data":"2026-02-12","horario":"18:30"},{"id":220,"aluno_id":12,"data":"2026-02-19","horario":"18:30"},{"id":221,"aluno_id":12,"data":"2026-02-24","horario":"18:30"},{"id":222,"aluno_id":12,"data":"2026-02-26","horario":"18:30"},{"id":223,"aluno_id":12,"data":"2026-03-03","horario":"18:30"},{"id":224,"aluno_id":12,"data":"2026-03-05","horario":"18:30"},{"id":225,"aluno_id":12,"data":"2026-03-10","horario":"18:30"},{"id":226,"aluno_id":12,"data":"2026-03-12","horario":"18:30"},{"id":227,"aluno_id":12,"data":"2026-03-19","horario":"18:30"},{"id":228,"aluno_id":12,"data":"2026-03-24","horario":"18:30"},{"id":229,"aluno_id":12,"data":"2026-03-26","horario":"18:30"},{"id":230,"aluno_id":12,"data":"2026-03-31","horario":"18:30"},{"id":231,"aluno_id":12,"data":"2026-04-07","horario":"18:30"},{"id":232,"aluno_id":12,"data":"2026-04-09","horario":"18:30"},{"id":233,"aluno_id":12,"data":"2026-04-28","horario":"18:30"},{"id":234,"aluno_id":12,"data":"2026-04-30","horario":"18:30"},{"id":235,"aluno_id":12,"data":"2026-05-05","horario":"18:30"},{"id":236,"aluno_id":12,"data":"2026-05-07","horario":"18:30"},{"id":237,"aluno_id":13,"data":"2026-02-03","horario":"18:30"},{"id":238,"aluno_id":13,"data":"2026-02-05","horario":"18:30"},{"id":239,"aluno_id":13,"data":"2026-02-10","horario":"18:30"},{"id":240,"aluno_id":13,"data":"2026-02-12","horario":"18:30"},{"id":241,"aluno_id":13,"data":"2026-02-19","horario":"18:30"},{"id":242,"aluno_id":13,"data":"2026-03-03","horario":"18:30"},{"id":243,"aluno_id":13,"data":"2026-03-05","horario":"18:30"},{"id":244,"aluno_id":13,"data":"2026-03-12","horario":"18:30"},{"id":245,"aluno_id":13,"data":"2026-03-17","horario":"18:30"},{"id":246,"aluno_id":13,"data":"2026-03-19","horario":"18:30"},{"id":247,"aluno_id":13,"data":"2026-03-24","horario":"18:30"},{"id":248,"aluno_id":13,"data":"2026-03-31","horario":"18:30"},{"id":249,"aluno_id":13,"data":"2026-04-07","horario":"18:30"},{"id":250,"aluno_id":13,"data":"2026-04-09","horario":"18:30"},{"id":251,"aluno_id":13,"data":"2026-04-14","horario":"18:30"},{"id":252,"aluno_id":13,"data":"2026-04-16","horario":"18:30"},{"id":253,"aluno_id":13,"data":"2026-05-07","horario":"18:30"},{"id":254,"aluno_id":13,"data":"2026-05-12","horario":"18:30"},{"id":255,"aluno_id":13,"data":"2026-05-14","horario":"18:30"},{"id":256,"aluno_id":13,"data":"2026-05-26","horario":"18:30"},{"id":257,"aluno_id":13,"data":"2026-05-28","horario":"18:30"},{"id":258,"aluno_id":13,"data":"2026-06-04","horario":"18:30"},{"id":259,"aluno_id":13,"data":"2026-06-10","horario":"18:30"},{"id":260,"aluno_id":13,"data":"2026-06-16","horario":"18:30"},{"id":261,"aluno_id":13,"data":"2026-06-18","horario":"18:30"},{"id":262,"aluno_id":13,"data":"2026-06-23","horario":"18:30"},{"id":263,"aluno_id":14,"data":"2026-02-03","horario":"18:30"},{"id":264,"aluno_id":14,"data":"2026-02-05","horario":"18:30"},{"id":265,"aluno_id":14,"data":"2026-02-10","horario":"18:30"},{"id":266,"aluno_id":14,"data":"2026-02-12","horario":"18:30"},{"id":267,"aluno_id":14,"data":"2026-02-19","horario":"18:30"},{"id":268,"aluno_id":14,"data":"2026-02-24","horario":"18:30"},{"id":269,"aluno_id":14,"data":"2026-03-03","horario":"18:30"},{"id":270,"aluno_id":14,"data":"2026-03-05","horario":"18:30"},{"id":271,"aluno_id":14,"data":"2026-03-10","horario":"18:30"},{"id":272,"aluno_id":14,"data":"2026-03-12","horario":"18:30"},{"id":273,"aluno_id":14,"data":"2026-03-17","horario":"18:30"},{"id":274,"aluno_id":14,"data":"2026-03-19","horario":"18:30"},{"id":275,"aluno_id":14,"data":"2026-03-24","horario":"18:30"},{"id":276,"aluno_id":14,"data":"2026-03-26","horario":"18:30"},{"id":277,"aluno_id":14,"data":"2026-03-31","horario":"18:30"},{"id":278,"aluno_id":14,"data":"2026-04-07","horario":"18:30"},{"id":279,"aluno_id":14,"data":"2026-04-09","horario":"18:30"},{"id":280,"aluno_id":14,"data":"2026-04-14","horario":"18:30"},{"id":281,"aluno_id":14,"data":"2026-04-16","horario":"18:30"},{"id":282,"aluno_id":14,"data":"2026-04-28","horario":"18:30"},{"id":283,"aluno_id":14,"data":"2026-04-30","horario":"18:30"},{"id":284,"aluno_id":14,"data":"2026-05-05","horario":"18:30"},{"id":285,"aluno_id":14,"data":"2026-05-07","horario":"18:30"},{"id":286,"aluno_id":14,"data":"2026-05-12","horario":"18:30"},{"id":287,"aluno_id":14,"data":"2026-05-19","horario":"18:30"},{"id":288,"aluno_id":14,"data":"2026-05-21","horario":"18:30"},{"id":289,"aluno_id":14,"data":"2026-05-26","horario":"18:30"},{"id":290,"aluno_id":14,"data":"2026-05-28","horario":"18:30"},{"id":291,"aluno_id":14,"data":"2026-06-04","horario":"18:30"},{"id":292,"aluno_id":14,"data":"2026-06-10","horario":"18:30"},{"id":293,"aluno_id":14,"data":"2026-06-23","horario":"18:30"},{"id":294,"aluno_id":16,"data":"2026-02-19","horario":"18:30"},{"id":295,"aluno_id":16,"data":"2026-03-03","horario":"18:30"},{"id":296,"aluno_id":16,"data":"2026-03-05","horario":"18:30"},{"id":297,"aluno_id":16,"data":"2026-03-12","horario":"18:30"},{"id":298,"aluno_id":16,"data":"2026-03-24","horario":"18:30"},{"id":299,"aluno_id":16,"data":"2026-04-07","horario":"18:30"},{"id":300,"aluno_id":17,"data":"2026-02-03","horario":"18:30"},{"id":301,"aluno_id":17,"data":"2026-02-05","horario":"18:30"},{"id":302,"aluno_id":17,"data":"2026-02-10","horario":"18:30"},{"id":303,"aluno_id":17,"data":"2026-02-19","horario":"18:30"},{"id":304,"aluno_id":17,"data":"2026-03-03","horario":"18:30"},{"id":305,"aluno_id":17,"data":"2026-03-05","horario":"18:30"},{"id":306,"aluno_id":17,"data":"2026-03-10","horario":"18:30"},{"id":307,"aluno_id":17,"data":"2026-03-17","horario":"18:30"},{"id":308,"aluno_id":17,"data":"2026-03-24","horario":"18:30"},{"id":309,"aluno_id":17,"data":"2026-03-26","horario":"18:30"},{"id":310,"aluno_id":17,"data":"2026-04-07","horario":"18:30"},{"id":311,"aluno_id":17,"data":"2026-04-09","horario":"18:30"},{"id":312,"aluno_id":17,"data":"2026-04-14","horario":"18:30"},{"id":313,"aluno_id":17,"data":"2026-04-16","horario":"18:30"},{"id":314,"aluno_id":17,"data":"2026-04-28","horario":"18:30"},{"id":315,"aluno_id":17,"data":"2026-05-05","horario":"18:30"},{"id":316,"aluno_id":17,"data":"2026-05-07","horario":"18:30"},{"id":317,"aluno_id":17,"data":"2026-05-12","horario":"18:30"},{"id":318,"aluno_id":17,"data":"2026-05-14","horario":"18:30"},{"id":319,"aluno_id":17,"data":"2026-05-19","horario":"18:30"},{"id":320,"aluno_id":17,"data":"2026-05-26","horario":"18:30"},{"id":321,"aluno_id":17,"data":"2026-05-28","horario":"18:30"},{"id":322,"aluno_id":17,"data":"2026-06-04","horario":"18:30"},{"id":323,"aluno_id":17,"data":"2026-06-10","horario":"18:30"},{"id":324,"aluno_id":17,"data":"2026-06-16","horario":"18:30"},{"id":325,"aluno_id":17,"data":"2026-06-18","horario":"18:30"},{"id":326,"aluno_id":19,"data":"2026-02-03","horario":"18:30"},{"id":327,"aluno_id":19,"data":"2026-02-24","horario":"18:30"},{"id":328,"aluno_id":20,"data":"2026-02-03","horario":"18:30"},{"id":329,"aluno_id":20,"data":"2026-02-05","horario":"18:30"},{"id":330,"aluno_id":20,"data":"2026-02-10","horario":"18:30"},{"id":331,"aluno_id":20,"data":"2026-02-12","horario":"18:30"},{"id":332,"aluno_id":20,"data":"2026-02-24","horario":"18:30"},{"id":333,"aluno_id":20,"data":"2026-03-03","horario":"18:30"},{"id":334,"aluno_id":20,"data":"2026-03-05","horario":"18:30"},{"id":335,"aluno_id":20,"data":"2026-03-10","horario":"18:30"},{"id":336,"aluno_id":20,"data":"2026-03-12","horario":"18:30"},{"id":337,"aluno_id":20,"data":"2026-03-17","horario":"18:30"},{"id":338,"aluno_id":20,"data":"2026-03-24","horario":"18:30"},{"id":339,"aluno_id":20,"data":"2026-03-26","horario":"18:30"},{"id":340,"aluno_id":20,"data":"2026-03-31","horario":"18:30"},{"id":341,"aluno_id":20,"data":"2026-04-02","horario":"18:30"},{"id":342,"aluno_id":20,"data":"2026-04-07","horario":"18:30"},{"id":343,"aluno_id":20,"data":"2026-04-09","horario":"18:30"},{"id":344,"aluno_id":20,"data":"2026-04-14","horario":"18:30"},{"id":345,"aluno_id":20,"data":"2026-04-16","horario":"18:30"},{"id":346,"aluno_id":20,"data":"2026-04-28","horario":"18:30"},{"id":347,"aluno_id":20,"data":"2026-04-30","horario":"18:30"},{"id":348,"aluno_id":20,"data":"2026-05-05","horario":"18:30"},{"id":349,"aluno_id":20,"data":"2026-05-07","horario":"18:30"},{"id":350,"aluno_id":20,"data":"2026-05-12","horario":"18:30"},{"id":351,"aluno_id":20,"data":"2026-05-14","horario":"18:30"},{"id":352,"aluno_id":20,"data":"2026-05-19","horario":"18:30"},{"id":353,"aluno_id":20,"data":"2026-05-21","horario":"18:30"},{"id":354,"aluno_id":20,"data":"2026-05-28","horario":"18:30"},{"id":355,"aluno_id":20,"data":"2026-06-04","horario":"18:30"},{"id":356,"aluno_id":20,"data":"2026-06-10","horario":"18:30"},{"id":357,"aluno_id":20,"data":"2026-06-16","horario":"18:30"},{"id":358,"aluno_id":20,"data":"2026-06-18","horario":"18:30"},{"id":359,"aluno_id":20,"data":"2026-06-23","horario":"18:30"},{"id":360,"aluno_id":21,"data":"2026-02-02","horario":"18:30"},{"id":361,"aluno_id":21,"data":"2026-02-09","horario":"18:30"},{"id":362,"aluno_id":21,"data":"2026-02-11","horario":"18:30"},{"id":363,"aluno_id":21,"data":"2026-02-18","horario":"9:00"},{"id":364,"aluno_id":21,"data":"2026-02-25","horario":"18:30"},{"id":365,"aluno_id":21,"data":"2026-03-02","horario":"18:30"},{"id":366,"aluno_id":21,"data":"2026-03-09","horario":"18:30"},{"id":367,"aluno_id":21,"data":"2026-03-11","horario":"18:30"},{"id":368,"aluno_id":21,"data":"2026-03-18","horario":"18:30"},{"id":369,"aluno_id":21,"data":"2026-03-25","horario":"18:30"},{"id":370,"aluno_id":21,"data":"2026-03-30","horario":"18:30"},{"id":371,"aluno_id":21,"data":"2026-04-01","horario":"18:30"},{"id":372,"aluno_id":21,"data":"2026-04-06","horario":"18:30"},{"id":373,"aluno_id":21,"data":"2026-04-15","horario":"18:30"},{"id":374,"aluno_id":21,"data":"2026-04-20","horario":"18:30"},{"id":375,"aluno_id":21,"data":"2026-04-22","horario":"18:30"},{"id":376,"aluno_id":21,"data":"2026-04-28","horario":"18:30"},{"id":377,"aluno_id":21,"data":"2026-05-11","horario":"18:30"},{"id":378,"aluno_id":21,"data":"2026-05-13","horario":"18:30"},{"id":379,"aluno_id":21,"data":"2026-05-27","horario":"18:30"},{"id":380,"aluno_id":21,"data":"2026-06-08","horario":"18:30"},{"id":381,"aluno_id":21,"data":"2026-06-15","horario":"18:45"},{"id":382,"aluno_id":21,"data":"2026-06-17","horario":"18:45"},{"id":383,"aluno_id":22,"data":"2026-02-09","horario":"18:30"},{"id":384,"aluno_id":22,"data":"2026-02-11","horario":"18:30"},{"id":385,"aluno_id":22,"data":"2026-02-18","horario":"9:00"},{"id":386,"aluno_id":22,"data":"2026-02-23","horario":"18:30"},{"id":387,"aluno_id":22,"data":"2026-02-25","horario":"18:30"},{"id":388,"aluno_id":22,"data":"2026-03-02","horario":"18:30"},{"id":389,"aluno_id":22,"data":"2026-03-09","horario":"18:30"},{"id":390,"aluno_id":22,"data":"2026-03-11","horario":"18:30"},{"id":391,"aluno_id":22,"data":"2026-03-16","horario":"18:30"},{"id":392,"aluno_id":22,"data":"2026-03-18","horario":"18:30"},{"id":393,"aluno_id":22,"data":"2026-03-25","horario":"18:30"},{"id":394,"aluno_id":22,"data":"2026-03-30","horario":"18:30"},{"id":395,"aluno_id":22,"data":"2026-04-01","horario":"18:30"},{"id":396,"aluno_id":22,"data":"2026-04-06","horario":"18:30"},{"id":397,"aluno_id":22,"data":"2026-04-08","horario":"18:30"},{"id":398,"aluno_id":22,"data":"2026-04-15","horario":"18:30"},{"id":399,"aluno_id":22,"data":"2026-04-22","horario":"18:30"},{"id":400,"aluno_id":22,"data":"2026-04-28","horario":"18:30"},{"id":401,"aluno_id":22,"data":"2026-05-04","horario":"18:30"},{"id":402,"aluno_id":22,"data":"2026-05-11","horario":"18:30"},{"id":403,"aluno_id":22,"data":"2026-05-13","horario":"18:30"},{"id":404,"aluno_id":22,"data":"2026-05-25","horario":"18:30"},{"id":405,"aluno_id":22,"data":"2026-05-27","horario":"18:30"},{"id":406,"aluno_id":22,"data":"2026-06-08","horario":"18:30"},{"id":407,"aluno_id":22,"data":"2026-06-15","horario":"18:45"},{"id":408,"aluno_id":22,"data":"2026-06-17","horario":"18:45"},{"id":409,"aluno_id":23,"data":"2026-02-02","horario":"18:30"},{"id":410,"aluno_id":23,"data":"2026-02-04","horario":"18:30"},{"id":411,"aluno_id":23,"data":"2026-02-09","horario":"18:30"},{"id":412,"aluno_id":23,"data":"2026-02-11","horario":"18:30"},{"id":413,"aluno_id":23,"data":"2026-02-18","horario":"9:00"},{"id":414,"aluno_id":23,"data":"2026-02-25","horario":"18:30"},{"id":415,"aluno_id":23,"data":"2026-03-02","horario":"18:30"},{"id":416,"aluno_id":23,"data":"2026-03-09","horario":"18:30"},{"id":417,"aluno_id":23,"data":"2026-03-11","horario":"18:30"},{"id":418,"aluno_id":23,"data":"2026-03-16","horario":"18:30"},{"id":419,"aluno_id":23,"data":"2026-03-18","horario":"18:30"},{"id":420,"aluno_id":23,"data":"2026-03-25","horario":"18:30"},{"id":421,"aluno_id":23,"data":"2026-03-30","horario":"18:30"},{"id":422,"aluno_id":23,"data":"2026-04-01","horario":"18:30"},{"id":423,"aluno_id":23,"data":"2026-04-08","horario":"18:30"},{"id":424,"aluno_id":23,"data":"2026-04-15","horario":"18:30"},{"id":425,"aluno_id":23,"data":"2026-04-20","horario":"18:30"},{"id":426,"aluno_id":23,"data":"2026-04-22","horario":"18:30"},{"id":427,"aluno_id":23,"data":"2026-04-28","horario":"18:30"},{"id":428,"aluno_id":23,"data":"2026-05-04","horario":"18:30"},{"id":429,"aluno_id":23,"data":"2026-05-11","horario":"18:30"},{"id":430,"aluno_id":23,"data":"2026-05-13","horario":"18:30"},{"id":431,"aluno_id":23,"data":"2026-05-25","horario":"18:30"},{"id":432,"aluno_id":23,"data":"2026-05-27","horario":"18:30"},{"id":433,"aluno_id":23,"data":"2026-06-08","horario":"18:30"},{"id":434,"aluno_id":23,"data":"2026-06-15","horario":"18:45"},{"id":435,"aluno_id":23,"data":"2026-06-17","horario":"18:45"},{"id":436,"aluno_id":24,"data":"2026-02-02","horario":"18:30"},{"id":437,"aluno_id":24,"data":"2026-02-04","horario":"18:30"},{"id":438,"aluno_id":24,"data":"2026-02-09","horario":"9:00"},{"id":439,"aluno_id":24,"data":"2026-02-11","horario":"9:00"},{"id":440,"aluno_id":24,"data":"2026-02-23","horario":"9:00"},{"id":441,"aluno_id":24,"data":"2026-02-25","horario":"9:00"},{"id":442,"aluno_id":24,"data":"2026-03-02","horario":"9:00"},{"id":443,"aluno_id":24,"data":"2026-03-09","horario":"9:00"},{"id":444,"aluno_id":24,"data":"2026-03-11","horario":"9:00"},{"id":445,"aluno_id":24,"data":"2026-03-16","horario":"9:00"},{"id":446,"aluno_id":24,"data":"2026-03-23","horario":"9:00"},{"id":447,"aluno_id":24,"data":"2026-03-25","horario":"9:00"},{"id":448,"aluno_id":24,"data":"2026-03-30","horario":"9:00"},{"id":449,"aluno_id":24,"data":"2026-04-01","horario":"9:00"},{"id":450,"aluno_id":24,"data":"2026-04-06","horario":"9:00"},{"id":451,"aluno_id":24,"data":"2026-04-08","horario":"9:00"},{"id":452,"aluno_id":24,"data":"2026-04-20","horario":"18:30"},{"id":453,"aluno_id":24,"data":"2026-04-22","horario":"9:00"},{"id":454,"aluno_id":24,"data":"2026-04-27","horario":"9:00"},{"id":455,"aluno_id":24,"data":"2026-04-29","horario":"9:00"},{"id":456,"aluno_id":24,"data":"2026-05-04","horario":"9:00"},{"id":457,"aluno_id":24,"data":"2026-05-06","horario":"9:00"},{"id":458,"aluno_id":24,"data":"2026-05-11","horario":"9:00"},{"id":459,"aluno_id":24,"data":"2026-05-13","horario":"9:00"},{"id":460,"aluno_id":24,"data":"2026-05-14","horario":"9:00"},{"id":461,"aluno_id":24,"data":"2026-05-18","horario":"9:00"},{"id":462,"aluno_id":24,"data":"2026-05-25","horario":"9:00"},{"id":463,"aluno_id":24,"data":"2026-06-08","horario":"18:30"},{"id":464,"aluno_id":24,"data":"2026-06-15","horario":"18:45"},{"id":465,"aluno_id":24,"data":"2026-06-17","horario":"18:45"},{"id":466,"aluno_id":25,"data":"2026-02-02","horario":"18:30"},{"id":467,"aluno_id":25,"data":"2026-02-04","horario":"18:30"},{"id":468,"aluno_id":25,"data":"2026-02-09","horario":"9:00"},{"id":469,"aluno_id":25,"data":"2026-02-11","horario":"9:00"},{"id":470,"aluno_id":25,"data":"2026-02-23","horario":"9:00"},{"id":471,"aluno_id":25,"data":"2026-02-25","horario":"9:00"},{"id":472,"aluno_id":25,"data":"2026-03-02","horario":"9:00"},{"id":473,"aluno_id":25,"data":"2026-03-09","horario":"9:00"},{"id":474,"aluno_id":25,"data":"2026-03-11","horario":"9:00"},{"id":475,"aluno_id":25,"data":"2026-03-16","horario":"9:00"},{"id":476,"aluno_id":25,"data":"2026-03-23","horario":"9:00"},{"id":477,"aluno_id":25,"data":"2026-03-25","horario":"9:00"},{"id":478,"aluno_id":25,"data":"2026-03-30","horario":"9:00"},{"id":479,"aluno_id":25,"data":"2026-04-01","horario":"9:00"},{"id":480,"aluno_id":25,"data":"2026-04-06","horario":"9:00"},{"id":481,"aluno_id":25,"data":"2026-04-08","horario":"9:00"},{"id":482,"aluno_id":25,"data":"2026-04-20","horario":"18:30"},{"id":483,"aluno_id":25,"data":"2026-04-22","horario":"9:00"},{"id":484,"aluno_id":25,"data":"2026-04-27","horario":"9:00"},{"id":485,"aluno_id":25,"data":"2026-04-29","horario":"9:00"},{"id":486,"aluno_id":25,"data":"2026-05-04","horario":"9:00"},{"id":487,"aluno_id":25,"data":"2026-05-06","horario":"9:00"},{"id":488,"aluno_id":25,"data":"2026-05-11","horario":"9:00"},{"id":489,"aluno_id":25,"data":"2026-05-13","horario":"9:00"},{"id":490,"aluno_id":25,"data":"2026-05-14","horario":"9:00"},{"id":491,"aluno_id":25,"data":"2026-05-18","horario":"9:00"},{"id":492,"aluno_id":25,"data":"2026-05-25","horario":"9:00"},{"id":493,"aluno_id":25,"data":"2026-06-08","horario":"18:30"},{"id":494,"aluno_id":25,"data":"2026-06-15","horario":"18:45"},{"id":495,"aluno_id":25,"data":"2026-06-17","horario":"18:45"},{"id":496,"aluno_id":28,"data":"2026-02-04","horario":"9:00"},{"id":497,"aluno_id":28,"data":"2026-02-09","horario":"9:00"},{"id":498,"aluno_id":28,"data":"2026-02-11","horario":"9:00"},{"id":499,"aluno_id":28,"data":"2026-02-18","horario":"9:00"},{"id":500,"aluno_id":28,"data":"2026-02-25","horario":"9:00"},{"id":501,"aluno_id":28,"data":"2026-03-02","horario":"9:00"},{"id":502,"aluno_id":28,"data":"2026-03-09","horario":"9:00"},{"id":503,"aluno_id":28,"data":"2026-03-11","horario":"9:00"},{"id":504,"aluno_id":28,"data":"2026-03-16","horario":"9:00"},{"id":505,"aluno_id":28,"data":"2026-03-23","horario":"9:00"},{"id":506,"aluno_id":28,"data":"2026-03-25","horario":"9:00"},{"id":507,"aluno_id":28,"data":"2026-03-30","horario":"9:00"},{"id":508,"aluno_id":28,"data":"2026-04-01","horario":"9:00"},{"id":509,"aluno_id":28,"data":"2026-04-06","horario":"9:00"},{"id":510,"aluno_id":28,"data":"2026-04-15","horario":"9:00"},{"id":511,"aluno_id":28,"data":"2026-04-22","horario":"9:00"},{"id":512,"aluno_id":28,"data":"2026-04-27","horario":"9:00"},{"id":513,"aluno_id":28,"data":"2026-04-29","horario":"9:00"},{"id":514,"aluno_id":28,"data":"2026-05-04","horario":"9:00"},{"id":515,"aluno_id":28,"data":"2026-05-06","horario":"9:00"},{"id":516,"aluno_id":28,"data":"2026-05-11","horario":"9:00"},{"id":517,"aluno_id":28,"data":"2026-05-13","horario":"9:00"},{"id":518,"aluno_id":28,"data":"2026-05-14","horario":"9:00"},{"id":519,"aluno_id":28,"data":"2026-05-18","horario":"9:00"},{"id":520,"aluno_id":28,"data":"2026-05-25","horario":"9:00"},{"id":521,"aluno_id":29,"data":"2026-03-25","horario":"18:30"},{"id":522,"aluno_id":29,"data":"2026-04-01","horario":"18:30"},{"id":523,"aluno_id":29,"data":"2026-04-08","horario":"18:30"},{"id":524,"aluno_id":29,"data":"2026-04-22","horario":"18:30"},{"id":525,"aluno_id":29,"data":"2026-06-17","horario":"18:45"},{"id":526,"aluno_id":32,"data":"2026-02-03","horario":"18:30"},{"id":527,"aluno_id":32,"data":"2026-02-05","horario":"18:30"},{"id":528,"aluno_id":32,"data":"2026-02-10","horario":"18:30"},{"id":529,"aluno_id":32,"data":"2026-02-19","horario":"18:30"},{"id":530,"aluno_id":32,"data":"2026-03-03","horario":"18:30"},{"id":531,"aluno_id":32,"data":"2026-03-05","horario":"18:30"},{"id":532,"aluno_id":32,"data":"2026-03-10","horario":"18:30"},{"id":533,"aluno_id":32,"data":"2026-03-12","horario":"18:30"},{"id":534,"aluno_id":32,"data":"2026-03-17","horario":"18:30"},{"id":535,"aluno_id":32,"data":"2026-03-24","horario":"18:30"},{"id":536,"aluno_id":32,"data":"2026-03-26","horario":"18:30"},{"id":537,"aluno_id":32,"data":"2026-03-31","horario":"18:30"},{"id":538,"aluno_id":32,"data":"2026-04-07","horario":"18:30"},{"id":539,"aluno_id":32,"data":"2026-04-09","horario":"18:30"},{"id":540,"aluno_id":32,"data":"2026-04-14","horario":"18:30"},{"id":541,"aluno_id":32,"data":"2026-05-26","horario":"18:30"},{"id":542,"aluno_id":32,"data":"2026-05-28","horario":"18:30"},{"id":543,"aluno_id":32,"data":"2026-06-04","horario":"18:30"},{"id":544,"aluno_id":32,"data":"2026-06-16","horario":"18:30"},{"id":545,"aluno_id":32,"data":"2026-06-18","horario":"18:30"},{"id":546,"aluno_id":32,"data":"2026-06-23","horario":"18:30"},{"id":547,"aluno_id":33,"data":"2026-02-10","horario":"18:30"},{"id":548,"aluno_id":33,"data":"2026-02-24","horario":"18:30"},{"id":549,"aluno_id":33,"data":"2026-03-03","horario":"18:30"},{"id":550,"aluno_id":33,"data":"2026-03-05","horario":"18:30"},{"id":551,"aluno_id":33,"data":"2026-03-10","horario":"18:30"},{"id":552,"aluno_id":33,"data":"2026-03-17","horario":"18:30"},{"id":553,"aluno_id":33,"data":"2026-03-24","horario":"18:30"},{"id":554,"aluno_id":33,"data":"2026-03-26","horario":"18:30"},{"id":555,"aluno_id":33,"data":"2026-04-09","horario":"18:30"},{"id":556,"aluno_id":33,"data":"2026-04-16","horario":"18:30"},{"id":557,"aluno_id":34,"data":"2026-02-11","horario":"18:30"},{"id":558,"aluno_id":34,"data":"2026-02-25","horario":"18:30"},{"id":559,"aluno_id":34,"data":"2026-03-16","horario":"18:30"},{"id":560,"aluno_id":34,"data":"2026-03-18","horario":"18:30"},{"id":561,"aluno_id":34,"data":"2026-03-25","horario":"18:30"},{"id":562,"aluno_id":34,"data":"2026-03-30","horario":"18:30"},{"id":563,"aluno_id":34,"data":"2026-04-01","horario":"18:30"},{"id":564,"aluno_id":34,"data":"2026-04-06","horario":"18:30"},{"id":565,"aluno_id":34,"data":"2026-04-08","horario":"18:30"},{"id":566,"aluno_id":34,"data":"2026-04-15","horario":"18:30"},{"id":567,"aluno_id":34,"data":"2026-04-20","horario":"18:30"},{"id":568,"aluno_id":34,"data":"2026-04-22","horario":"18:30"},{"id":569,"aluno_id":34,"data":"2026-04-28","horario":"18:30"},{"id":570,"aluno_id":34,"data":"2026-05-11","horario":"18:30"},{"id":571,"aluno_id":34,"data":"2026-05-25","horario":"18:30"},{"id":572,"aluno_id":34,"data":"2026-05-27","horario":"18:30"},{"id":573,"aluno_id":34,"data":"2026-06-08","horario":"18:30"},{"id":574,"aluno_id":34,"data":"2026-06-15","horario":"18:45"},{"id":575,"aluno_id":34,"data":"2026-06-17","horario":"18:45"},{"id":576,"aluno_id":35,"data":"2026-03-03","horario":"18:30"},{"id":577,"aluno_id":35,"data":"2026-03-12","horario":"18:30"},{"id":578,"aluno_id":35,"data":"2026-03-19","horario":"18:30"},{"id":579,"aluno_id":35,"data":"2026-03-26","horario":"18:30"},{"id":580,"aluno_id":35,"data":"2026-03-31","horario":"18:30"},{"id":581,"aluno_id":35,"data":"2026-04-02","horario":"18:30"},{"id":582,"aluno_id":35,"data":"2026-05-05","horario":"18:30"},{"id":583,"aluno_id":35,"data":"2026-05-19","horario":"18:30"},{"id":584,"aluno_id":35,"data":"2026-05-21","horario":"18:30"},{"id":585,"aluno_id":35,"data":"2026-05-26","horario":"18:30"},{"id":586,"aluno_id":35,"data":"2026-06-04","horario":"18:30"},{"id":587,"aluno_id":35,"data":"2026-06-10","horario":"18:30"},{"id":588,"aluno_id":35,"data":"2026-06-18","horario":"18:30"},{"id":589,"aluno_id":35,"data":"2026-06-23","horario":"18:30"},{"id":590,"aluno_id":36,"data":"2026-02-19","horario":"18:30"},{"id":591,"aluno_id":36,"data":"2026-03-03","horario":"18:30"},{"id":592,"aluno_id":36,"data":"2026-03-05","horario":"18:30"},{"id":593,"aluno_id":36,"data":"2026-03-12","horario":"18:30"},{"id":594,"aluno_id":36,"data":"2026-03-17","horario":"18:30"},{"id":595,"aluno_id":36,"data":"2026-03-19","horario":"18:30"},{"id":596,"aluno_id":36,"data":"2026-04-09","horario":"18:30"},{"id":597,"aluno_id":36,"data":"2026-04-16","horario":"18:30"},{"id":598,"aluno_id":36,"data":"2026-05-12","horario":"18:30"},{"id":599,"aluno_id":36,"data":"2026-05-14","horario":"18:30"},{"id":600,"aluno_id":36,"data":"2026-05-21","horario":"18:30"},{"id":601,"aluno_id":36,"data":"2026-05-26","horario":"18:30"},{"id":602,"aluno_id":36,"data":"2026-05-28","horario":"18:30"},{"id":603,"aluno_id":37,"data":"2026-03-05","horario":"18:30"},{"id":604,"aluno_id":37,"data":"2026-03-10","horario":"18:30"},{"id":605,"aluno_id":37,"data":"2026-03-12","horario":"18:30"},{"id":606,"aluno_id":37,"data":"2026-03-17","horario":"18:30"},{"id":607,"aluno_id":37,"data":"2026-03-19","horario":"18:30"},{"id":608,"aluno_id":37,"data":"2026-03-24","horario":"18:30"},{"id":609,"aluno_id":37,"data":"2026-03-26","horario":"18:30"},{"id":610,"aluno_id":37,"data":"2026-03-31","horario":"18:30"},{"id":611,"aluno_id":37,"data":"2026-04-07","horario":"18:30"},{"id":612,"aluno_id":37,"data":"2026-04-09","horario":"18:30"},{"id":613,"aluno_id":37,"data":"2026-04-14","horario":"18:30"},{"id":614,"aluno_id":37,"data":"2026-04-16","horario":"18:30"},{"id":615,"aluno_id":37,"data":"2026-04-28","horario":"18:30"},{"id":616,"aluno_id":37,"data":"2026-04-30","horario":"18:30"},{"id":617,"aluno_id":37,"data":"2026-05-05","horario":"18:30"},{"id":618,"aluno_id":37,"data":"2026-05-07","horario":"18:30"},{"id":619,"aluno_id":37,"data":"2026-05-12","horario":"18:30"},{"id":620,"aluno_id":37,"data":"2026-05-14","horario":"18:30"},{"id":621,"aluno_id":37,"data":"2026-05-21","horario":"18:30"},{"id":622,"aluno_id":37,"data":"2026-05-26","horario":"18:30"},{"id":623,"aluno_id":37,"data":"2026-05-28","horario":"18:30"},{"id":624,"aluno_id":37,"data":"2026-06-04","horario":"18:30"},{"id":625,"aluno_id":37,"data":"2026-06-10","horario":"18:30"},{"id":626,"aluno_id":37,"data":"2026-06-18","horario":"18:30"},{"id":627,"aluno_id":37,"data":"2026-06-23","horario":"18:30"},{"id":628,"aluno_id":40,"data":"2026-04-28","horario":"18:30"},{"id":629,"aluno_id":40,"data":"2026-05-05","horario":"18:30"},{"id":630,"aluno_id":40,"data":"2026-05-07","horario":"18:30"},{"id":631,"aluno_id":40,"data":"2026-05-12","horario":"18:30"},{"id":632,"aluno_id":40,"data":"2026-05-14","horario":"18:30"},{"id":633,"aluno_id":40,"data":"2026-05-19","horario":"18:30"},{"id":634,"aluno_id":40,"data":"2026-05-21","horario":"18:30"},{"id":635,"aluno_id":40,"data":"2026-05-26","horario":"18:30"},{"id":636,"aluno_id":40,"data":"2026-05-28","horario":"18:30"},{"id":637,"aluno_id":40,"data":"2026-06-04","horario":"18:30"},{"id":638,"aluno_id":40,"data":"2026-06-10","horario":"18:30"},{"id":639,"aluno_id":40,"data":"2026-06-16","horario":"18:30"},{"id":640,"aluno_id":40,"data":"2026-06-18","horario":"18:30"},{"id":641,"aluno_id":40,"data":"2026-06-23","horario":"18:30"},{"id":642,"aluno_id":41,"data":"2026-04-30","horario":"18:30"},{"id":643,"aluno_id":41,"data":"2026-05-05","horario":"18:30"},{"id":644,"aluno_id":41,"data":"2026-05-07","horario":"18:30"},{"id":645,"aluno_id":41,"data":"2026-05-12","horario":"18:30"},{"id":646,"aluno_id":41,"data":"2026-05-14","horario":"18:30"},{"id":647,"aluno_id":41,"data":"2026-05-19","horario":"18:30"},{"id":648,"aluno_id":41,"data":"2026-05-21","horario":"18:30"},{"id":649,"aluno_id":41,"data":"2026-05-26","horario":"18:30"},{"id":650,"aluno_id":41,"data":"2026-05-28","horario":"18:30"},{"id":651,"aluno_id":41,"data":"2026-06-04","horario":"18:30"},{"id":652,"aluno_id":41,"data":"2026-06-10","horario":"18:30"},{"id":653,"aluno_id":41,"data":"2026-06-16","horario":"18:30"},{"id":654,"aluno_id":41,"data":"2026-06-23","horario":"18:30"},{"id":655,"aluno_id":42,"data":"2026-05-12","horario":"18:30"},{"id":656,"aluno_id":42,"data":"2026-05-14","horario":"18:30"},{"id":657,"aluno_id":42,"data":"2026-05-19","horario":"18:30"},{"id":658,"aluno_id":42,"data":"2026-05-21","horario":"18:30"},{"id":659,"aluno_id":42,"data":"2026-05-26","horario":"18:30"},{"id":660,"aluno_id":42,"data":"2026-05-28","horario":"18:30"},{"id":661,"aluno_id":42,"data":"2026-06-04","horario":"18:30"},{"id":662,"aluno_id":42,"data":"2026-06-10","horario":"18:30"},{"id":663,"aluno_id":42,"data":"2026-06-16","horario":"18:30"},{"id":664,"aluno_id":42,"data":"2026-06-18","horario":"18:30"},{"id":665,"aluno_id":42,"data":"2026-06-23","horario":"18:30"}];
+
+const FAIXAS = ["branca","cinza-branca","cinza","cinza-preta","amarela-branca","amarela","amarela-preta","laranja-branca","laranja","laranja-preta","verde-branca","verde","verde-preta","azul-branca","azul","azul-preta","roxa-branca","roxa","roxa-preta","marrom-branca","marrom","marrom-preta","preta"];
+const CORES = {
+  "branca":{bg:"#ffffff",border:"2px solid #cbd5e1"},
+  "cinza-branca":{bg:"#6b7280",stripe:"#fff"},"cinza":{bg:"#6b7280"},"cinza-preta":{bg:"#6b7280",stripe:"#000"},
+  "amarela-branca":{bg:"#facc15",stripe:"#fff"},"amarela":{bg:"#facc15"},"amarela-preta":{bg:"#facc15",stripe:"#000"},
+  "laranja-branca":{bg:"#f97316",stripe:"#fff"},"laranja":{bg:"#f97316"},"laranja-preta":{bg:"#f97316",stripe:"#000"},
+  "verde-branca":{bg:"#16a34a",stripe:"#fff"},"verde":{bg:"#16a34a"},"verde-preta":{bg:"#16a34a",stripe:"#000"},
+  "azul-branca":{bg:"#2563eb",stripe:"#fff"},"azul":{bg:"#2563eb"},"azul-preta":{bg:"#2563eb",stripe:"#000"},
+  "roxa-branca":{bg:"#7e22ce",stripe:"#fff"},"roxa":{bg:"#6b21a8"},"roxa-preta":{bg:"#6b21a8",stripe:"#000"},
+  "marrom-branca":{bg:"#b45309",stripe:"#fff"},"marrom":{bg:"#92400e"},"marrom-preta":{bg:"#92400e",stripe:"#000"},
+  "preta":{bg:"#000000"}
+};
+const AULAS_POR_GRAU = 8;
+const ACADEMIAS_PADRAO = ["027FightClub","VillaFight"];
+
+let DB = null;
+let state = {
+  tab: 'dashboard',
+  dashWeekOffset: 0,
+  dashAcademia: 'todas',
+  presAcademia: null,
+  presWeekOffset: 0,
+  presDateStr: null,
+  presPendentes: new Set(),
+  alunosFiltro: 'todas',
+  alunosOrdem: 'alfabetica',
+  modal: null,
+  editingId: null,
+  detalhesId: null,
+  fotoPreview: null,
+  backupMsg: '',
+};
+
+function pad(n){ return n<10 ? '0'+n : ''+n; }
+function fmtISO(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function parseISO(s){ const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); }
+function fmtBR(s){ if(!s) return ''; const d = parseISO(s); return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(); }
+function startOfWeek(d){ const r = new Date(d); r.setDate(r.getDate()-r.getDay()); r.setHours(0,0,0,0); return r; }
+function addDays(d,n){ const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+function todayStr(){ return fmtISO(new Date()); }
+function calcIdade(dataNasc){
+  const hoje = new Date(); const n = parseISO(dataNasc);
+  let idade = hoje.getFullYear()-n.getFullYear();
+  const m = hoje.getMonth()-n.getMonth();
+  if(m<0 || (m===0 && hoje.getDate()<n.getDate())) idade--;
+  return idade;
+}
+function getInitials(nome){ return nome.split(' ').filter(Boolean).map(p=>p[0]).join('').toUpperCase().slice(0,2); }
+function getAcademias(){
+  const s = new Set(ACADEMIAS_PADRAO);
+  DB.alunos.forEach(a=>s.add(a.academia));
+  return Array.from(s);
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+const hasClaudeStorage = (typeof window.storage !== 'undefined') && window.storage && typeof window.storage.get === 'function';
+
+async function storageGet(key){
+  if(hasClaudeStorage){
+    try{ const r = await window.storage.get(key); return r ? r.value : null; }
+    catch(e){ return null; }
+  }
+  try{ return window.localStorage.getItem(key); }
+  catch(e){ return null; }
+}
+async function storageSet(key, value){
+  if(hasClaudeStorage){
+    try{ await window.storage.set(key, value); return true; }
+    catch(e){ console.error('storage error', e); return false; }
+  }
+  try{ window.localStorage.setItem(key, value); return true; }
+  catch(e){ console.error('storage error', e); return false; }
+}
+
+async function loadDB(){
+  const raw = await storageGet('data');
+  if(raw){
+    DB = JSON.parse(raw);
+  } else {
+    DB = {
+      alunos: SEED_ALUNOS.map(a=>({...a})),
+      presencas: SEED_PRESENCAS.map(p=>({...p})),
+      promocoes: [],
+      nextAlunoId: Math.max(0,...SEED_ALUNOS.map(a=>a.id),0)+1,
+      nextPresencaId: Math.max(0,...SEED_PRESENCAS.map(p=>p.id),0)+1,
+      nextPromocaoId: 1,
+    };
+    await saveDB();
+  }
+}
+function saveDB(){
+  return storageSet('data', JSON.stringify(DB));
+}
+
+function totalPresencasDe(alunoId){
+  return DB.presencas.filter(p=>p.aluno_id===alunoId).length;
+}
+function progressoAluno(aluno){
+  const total = totalPresencasDe(aluno.id);
+  const ultimaPromo = aluno.presencas_na_ultima_promocao||0;
+  const desdeUltimo = Math.max(0, total-ultimaPromo);
+  const maxGraus = aluno.graus>=4 && aluno.graus_vermelhos>=4;
+  const podePromoverGrau = !maxGraus && desdeUltimo>=AULAS_POR_GRAU;
+  const aulasParaProximo = maxGraus?0:Math.max(0,AULAS_POR_GRAU-desdeUltimo);
+  return {total, desdeUltimo, maxGraus, podePromoverGrau, aulasParaProximo};
+}
+
+function promoverGrau(id){
+  const aluno = DB.alunos.find(a=>a.id===id); if(!aluno) return;
+  let ng=aluno.graus, ngv=aluno.graus_vermelhos;
+  if(ng<4) ng++; else if(ngv<4) ngv++; else { alert('Este aluno já tem o máximo de graus. Use "Graduar" para trocar de faixa.'); return; }
+  const total = totalPresencasDe(id);
+  DB.promocoes.push({id: DB.nextPromocaoId++, aluno_id:id, tipo:'grau', graduacao_anterior:aluno.graduacao, graus_anteriores:aluno.graus, graus_vermelhos_anteriores:aluno.graus_vermelhos, graduacao_nova:aluno.graduacao, graus_novos:ng, graus_vermelhos_novos:ngv, data_promocao:new Date().toISOString()});
+  aluno.graus=ng; aluno.graus_vermelhos=ngv; aluno.presencas_na_ultima_promocao=total; aluno.updated_at=new Date().toISOString();
+  saveDB(); render();
+}
+function graduarAluno(id){
+  const aluno = DB.alunos.find(a=>a.id===id); if(!aluno) return;
+  if(aluno.graus!==4 || aluno.graus_vermelhos!==4){ alert('O aluno ainda não atingiu o máximo de graus (4 brancos + 4 vermelhos).'); return; }
+  const idx = FAIXAS.indexOf(aluno.graduacao);
+  if(idx===-1){ alert('Graduação atual não reconhecida.'); return; }
+  if(idx===FAIXAS.length-1){ alert('Este aluno já está na faixa máxima (preta).'); return; }
+  const nova = FAIXAS[idx+1];
+  const total = totalPresencasDe(id);
+  DB.promocoes.push({id: DB.nextPromocaoId++, aluno_id:id, tipo:'graduacao', graduacao_anterior:aluno.graduacao, graus_anteriores:4, graus_vermelhos_anteriores:4, graduacao_nova:nova, graus_novos:0, graus_vermelhos_novos:0, data_promocao:new Date().toISOString()});
+  aluno.graduacao=nova; aluno.graus=0; aluno.graus_vermelhos=0; aluno.presencas_na_ultima_promocao=total; aluno.updated_at=new Date().toISOString();
+  saveDB(); render();
+}
+function excluirAluno(id){
+  if(!confirm('Tem certeza que deseja excluir este aluno? Isso também remove as presenças dele.')) return;
+  DB.alunos = DB.alunos.filter(a=>a.id!==id);
+  DB.presencas = DB.presencas.filter(p=>p.aluno_id!==id);
+  saveDB(); render();
+}
+
+function setTab(t){ state.tab=t; state.modal=null; render(); }
+function faixaHTML(graduacao, graus, graus_vermelhos, size){
+  const c = CORES[graduacao] || CORES['branca'];
+  const h = size==='sm' ? 12 : 16;
+  const w = size==='sm' ? 88 : 128;
+  let inner = `<div class="faixa" style="height:${h}px;width:${w}px;background:${c.bg};${c.border?('border:'+c.border+';'):''}">`;
+  if(c.stripe){ inner += `<div class="stripe" style="background:${c.stripe};top:${h/2-1.5}px;"></div>`; }
+  inner += `<div class="tip">`;
+  for(let i=0;i<4;i++){
+    let col='transparent';
+    if(i<graus) col='#fff';
+    if(i<graus_vermelhos) col='#ef4444';
+    inner += `<div class="grau" style="background:${col};"></div>`;
+  }
+  inner += `</div></div>`;
+  return inner;
+}
+
+function App(){
+  const el = document.getElementById('app');
+  el.innerHTML = renderHeader() + renderTab() + renderNav() + renderModal();
+  bindDynamic();
+}
+function render(){ App(); }
+
+function renderHeader(){
+  const titles = { dashboard:'Jiu Presença', alunos:'Alunos', presenca:'Presença', progresso:'Progresso', historico:'Histórico', backup:'Backup' };
+  const subs = {
+    dashboard:'Visão geral das academias',
+    alunos:'Cadastro e graduação',
+    presenca:'Marcar presença do dia',
+    progresso:'Aulas até o próximo grau',
+    historico:'Graus e faixas conquistadas',
+    backup:'Exportar ou importar dados',
+  };
+  return `<header class="top"><h1>${titles[state.tab]}</h1><p class="sub">${subs[state.tab]}</p></header><div class="px" style="padding-top:14px;">`;
+}
+const NAV_ICONS = {
+  dashboard: '<path d="M4 11.5 12 4l8 7.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9" stroke-linecap="round" stroke-linejoin="round"/>',
+  alunos: '<circle cx="9" cy="8" r="3"/><path d="M3.5 20c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5" stroke-linecap="round"/><circle cx="17" cy="9" r="2.4"/><path d="M15.3 12.2c2 .2 3.7 1.8 4.2 4.3" stroke-linecap="round"/>',
+  presenca: '<rect x="4" y="5.5" width="16" height="14.5" rx="3"/><path d="M4 9.5h16" stroke-linecap="round"/><path d="M8.5 13.3l1.8 1.8 3.8-3.8" stroke-linecap="round" stroke-linejoin="round"/>',
+  progresso: '<path d="M4 16l4.2-5 3.4 3 5.4-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 6.5h4v4" stroke-linecap="round" stroke-linejoin="round"/>',
+  historico: '<circle cx="12" cy="12.5" r="7.5"/><path d="M12 8.3V13l3 2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3.5h6" stroke-linecap="round"/>',
+  backup: '<path d="M7.5 15.5a4 4 0 0 1 .6-7.9 5 5 0 0 1 9.6 1.4A3.6 3.6 0 0 1 17 16" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 11v8" stroke-linecap="round"/><path d="M9.3 16.3 12 19l2.7-2.7" stroke-linecap="round" stroke-linejoin="round"/>',
+};
+function iconSvg(name){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">${NAV_ICONS[name]}</svg>`;
+}
+function renderNav(){
+  const items = [
+    ['dashboard','Início'], ['alunos','Alunos'], ['presenca','Presença'], ['progresso','Progresso'], ['historico','Histórico'], ['backup','Backup']
+  ];
+  return `</div><nav class="tabs">${items.map(([id,label])=>`<button class="${state.tab===id?'active':''}" onclick="setTab('${id}')">${iconSvg(id)}<span>${label}</span></button>`).join('')}</nav>`;
+}
+
+function renderTab(){
+  if(state.tab==='dashboard') return renderDashboard();
+  if(state.tab==='alunos') return renderAlunos();
+  if(state.tab==='presenca') return renderPresenca();
+  if(state.tab==='progresso') return renderProgresso();
+  if(state.tab==='historico') return renderHistorico();
+  if(state.tab==='backup') return renderBackup();
+  return '';
+}
+
+function renderDashboard(){
+  const academias = getAcademias();
+  const base = addDays(new Date(), state.dashWeekOffset*7);
+  const inicio = startOfWeek(base);
+  const fim = addDays(inicio,6);
+  const inicioStr = fmtISO(inicio), fimStr = fmtISO(fim);
+  let alunosF = DB.alunos.filter(a=> state.dashAcademia==='todas' || a.academia===state.dashAcademia);
+  const alunoIds = new Set(alunosF.map(a=>a.id));
+  const presSemana = DB.presencas.filter(p=> alunoIds.has(p.aluno_id) && p.data>=inicioStr && p.data<=fimStr);
+  const ativos = new Set(presSemana.map(p=>p.aluno_id)).size;
+  const totalAlunos = alunosF.length;
+  const taxa = totalAlunos>0 ? Math.round((ativos/totalAlunos)*100) : 0;
+
+  const prontos = DB.alunos.filter(a=> (state.dashAcademia==='todas'||a.academia===state.dashAcademia) && progressoAluno(a).podePromoverGrau);
+
+  return `
+  <div class="card">
+    <label>Academia</label>
+    <select onchange="state.dashAcademia=this.value; render();">
+      <option value="todas" ${state.dashAcademia==='todas'?'selected':''}>Todas as academias</option>
+      ${academias.map(a=>`<option value="${a}" ${state.dashAcademia===a?'selected':''}>${a}</option>`).join('')}
+    </select>
+  </div>
+  <div class="card">
+    <div class="between" style="margin-bottom:10px;">
+      <button class="btn-icon" onclick="state.dashWeekOffset--; render();">&#8249;</button>
+      <div style="text-align:center;">
+        <div style="font-weight:600;font-size:13px;">${fmtBR(inicioStr)} a ${fmtBR(fimStr)}</div>
+        <div class="note">${state.dashWeekOffset===0?'Semana atual':(state.dashWeekOffset>0?'Semana futura':'Semana passada')}</div>
+      </div>
+      <button class="btn-icon" onclick="state.dashWeekOffset++; render();">&#8250;</button>
+    </div>
+    <div class="grid2">
+      <div class="stat"><div class="n">${totalAlunos}</div><div class="l">Total de alunos</div></div>
+      <div class="stat"><div class="n">${presSemana.length}</div><div class="l">Presenças na semana</div></div>
+      <div class="stat"><div class="n">${ativos}</div><div class="l">Alunos ativos</div></div>
+      <div class="stat"><div class="n">${taxa}%</div><div class="l">Taxa de presença</div></div>
+    </div>
+  </div>
+  ${prontos.length>0 ? `
+  <div class="card">
+    <h2>Prontos para promoção (${prontos.length})</h2>
+    ${prontos.map(a=>`
+      <div class="list-item">
+        <div class="avatar">${a.foto_url?`<img src="${a.foto_url}">`:getInitials(a.nome)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:14px;">${escapeHtml(a.nome)}</div>
+          ${faixaHTML(a.graduacao,a.graus,a.graus_vermelhos,'sm')}
+        </div>
+        <button class="btn btn-green" onclick="promoverGrau(${a.id})">+ grau</button>
+      </div>`).join('')}
+  </div>` : ''}
+  `;
+}
+
+function renderAlunos(){
+  const academias = getAcademias();
+  let lista = DB.alunos.filter(a=> state.alunosFiltro==='todas' || a.academia===state.alunosFiltro);
+  if(state.alunosOrdem==='alfabetica') lista = lista.slice().sort((a,b)=>a.nome.localeCompare(b.nome));
+  else lista = lista.slice().sort((a,b)=>totalPresencasDe(b.id)-totalPresencasDe(a.id));
+
+  const hojeMD = fmtISO(new Date()).slice(5);
+
+  return `
+  <div class="card">
+    <div class="flexwrap" style="margin-bottom:10px;">
+      <span class="chip ${state.alunosFiltro==='todas'?'active':''}" onclick="state.alunosFiltro='todas'; render();">Todas</span>
+      ${academias.map(a=>`<span class="chip ${state.alunosFiltro===a?'active':''}" onclick="state.alunosFiltro='${a}'; render();">${a}</span>`).join('')}
+    </div>
+    <div class="row">
+      <span class="note">Ordenar por:</span>
+      <span class="chip ${state.alunosOrdem==='alfabetica'?'active':''}" onclick="state.alunosOrdem='alfabetica'; render();">Nome</span>
+      <span class="chip ${state.alunosOrdem==='presencas'?'active':''}" onclick="state.alunosOrdem='presencas'; render();">Presenças</span>
+    </div>
+  </div>
+  <div class="card">
+    ${lista.length===0? `<div class="empty">Nenhum aluno cadastrado ainda.</div>` : lista.map(a=>{
+      const p = progressoAluno(a);
+      const idade = a.data_nascimento ? calcIdade(a.data_nascimento) : a.idade;
+      const aniversario = a.data_nascimento && a.data_nascimento.slice(5)===hojeMD;
+      const totalGraus = a.graus + a.graus_vermelhos;
+      return `
+      <div class="list-item" style="align-items:flex-start;${p.podePromoverGrau?'background:#f0fdf4;border-color:#86efac;':''}">
+        <div class="avatar" style="cursor:pointer;" onclick="state.detalhesId=${a.id}; state.modal='detalhes'; render();">${a.foto_url?`<img src="${a.foto_url}">`:getInitials(a.nome)}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="row" style="flex-wrap:wrap;">
+            <span style="font-weight:600;font-size:14px;">${escapeHtml(a.nome)}</span>
+            ${idade?`<span class="badge">${idade} anos</span>`:''}
+            ${aniversario?`<span class="badge badge-yellow">Aniversário hoje</span>`:''}
+          </div>
+          <div class="row" style="margin-top:6px;">
+            ${faixaHTML(a.graduacao,a.graus,a.graus_vermelhos,'sm')}
+            <span class="note" style="text-transform:capitalize;">${a.graduacao.replace(/-/g,' ')}</span>
+          </div>
+          <div style="margin-top:6px;">
+            ${totalGraus<8 ? `<span class="badge ${p.desdeUltimo>=8?'badge-green':''}">${p.desdeUltimo}/8 aulas</span>` : `<span class="badge badge-blue">Pronto para graduar</span>`}
+            <span class="note">${a.academia}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          ${totalGraus<8 ? `<button class="btn-icon" title="Adicionar grau" onclick="promoverGrau(${a.id})">&#8593;</button>` : `<button class="btn-icon" title="Graduar" onclick="graduarAluno(${a.id})">&#9733;</button>`}
+          <button class="btn-icon" title="Editar" onclick="abrirEdicao(${a.id})">&#9998;</button>
+          <button class="btn-icon" title="Excluir" onclick="excluirAluno(${a.id})">&#128465;</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+  <button class="fab" onclick="abrirNovoAluno()">+ Aluno</button>
+  `;
+}
+
+function abrirNovoAluno(){
+  state.editingId = null;
+  state.fotoPreview = null;
+  state.modal = 'aluno-form';
+  render();
+}
+function abrirEdicao(id){
+  state.editingId = id;
+  const a = DB.alunos.find(x=>x.id===id);
+  state.fotoPreview = a ? a.foto_url : null;
+  state.modal = 'aluno-form';
+  render();
+}
+
+function renderPresenca(){
+  const academias = getAcademias();
+  if(!state.presAcademia) state.presAcademia = academias[0] || 'todas';
+  const isVilla = state.presAcademia === 'VillaFight';
+  const horario = isVilla ? '18:30' : '18:45';
+  const base = addDays(new Date(), state.presWeekOffset*7);
+  const inicio = startOfWeek(base);
+  const dias = isVilla ? [{d:addDays(inicio,2),n:'Terça'},{d:addDays(inicio,4),n:'Quinta'}] : [{d:addDays(inicio,1),n:'Segunda'},{d:addDays(inicio,3),n:'Quarta'}];
+  if(!state.presDateStr || state.presDateStrWeek !== state.presWeekOffset+'|'+state.presAcademia){
+    state.presDateStr = fmtISO(dias[0].d);
+    state.presDateStrWeek = state.presWeekOffset+'|'+state.presAcademia;
+    const salvas = DB.presencas.filter(p=>p.data===state.presDateStr && p.horario===horario);
+    state.presPendentes = new Set(salvas.map(p=>p.aluno_id));
+  }
+  const alunosF = state.presAcademia==='todas' ? DB.alunos : DB.alunos.filter(a=>a.academia===state.presAcademia);
+
+  function presencasNoDia(dataStr){ return DB.presencas.filter(p=>p.data===dataStr && p.horario===horario).length; }
+
+  return `
+  <div class="card">
+    <label>Academia</label>
+    <select onchange="state.presAcademia=this.value; state.presDateStr=null; render();">
+      ${academias.map(a=>`<option value="${a}" ${state.presAcademia===a?'selected':''}>${a}</option>`).join('')}
+    </select>
+    <p class="note" style="margin-top:6px;">${isVilla?'Terça e Quinta, 18:30':'Segunda e Quarta, 18:45'}</p>
+  </div>
+  <div class="card">
+    <div class="between" style="margin-bottom:10px;">
+      <button class="btn-icon" onclick="state.presWeekOffset--; state.presDateStr=null; render();">&#8249;</button>
+      <span style="font-weight:600;font-size:13px;">${fmtBR(fmtISO(inicio))}</span>
+      <button class="btn-icon" onclick="state.presWeekOffset++; state.presDateStr=null; render();">&#8250;</button>
+    </div>
+    <div class="grid2">
+      ${dias.map(({d,n})=>{
+        const ds = fmtISO(d);
+        const sel = state.presDateStr===ds;
+        const cnt = presencasNoDia(ds);
+        const isHoje = ds===todayStr();
+        return `<button class="btn ${sel?'btn-primary':'btn-outline'}" style="position:relative;padding:10px 6px;" onclick="state.presDateStr='${ds}'; const s=DB.presencas.filter(p=>p.data==='${ds}'&&p.horario==='${horario}'); state.presPendentes=new Set(s.map(p=>p.aluno_id)); render();">
+          <div style="font-size:11px;">${n}</div>
+          <div style="font-size:18px;">${pad(d.getDate())}</div>
+          ${isHoje?'<div style="font-size:10px;">hoje</div>':''}
+          ${cnt>0?`<span class="badge" style="position:absolute;top:-6px;right:-6px;background:${sel?'#fff':'#16a34a'};color:${sel?'var(--blue)':'#fff'};">${cnt}</span>`:''}
+        </button>`;
+      }).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="between" style="margin-bottom:8px;">
+      <h2 style="margin:0;">Alunos</h2>
+      <span class="note">${fmtBR(state.presDateStr)} - ${horario}</span>
+    </div>
+    ${alunosF.length===0?`<div class="empty">Nenhum aluno nesta academia.</div>`:alunosF.map(a=>{
+      const marcado = state.presPendentes.has(a.id);
+      return `<div class="list-item" style="cursor:pointer;${marcado?'background:#f0fdf4;border-color:#86efac;':''}" onclick="togglePendente(${a.id})">
+        <div class="avatar">${a.foto_url?`<img src="${a.foto_url}">`:getInitials(a.nome)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:14px;">${escapeHtml(a.nome)}</div>
+          ${faixaHTML(a.graduacao,a.graus,a.graus_vermelhos,'sm')}
+        </div>
+        <div class="badge ${marcado?'badge-green':''}">${marcado?'presente':'ausente'}</div>
+      </div>`;
+    }).join('')}
+  </div>
+  ${alunosF.length>0?`<button class="fab" onclick="confirmarPresencas()">Salvar (${state.presPendentes.size})</button>`:''}
+  `;
+}
+function togglePendente(id){
+  if(state.presPendentes.has(id)) state.presPendentes.delete(id); else state.presPendentes.add(id);
+  render();
+}
+function confirmarPresencas(){
+  const isVilla = state.presAcademia==='VillaFight';
+  const horario = isVilla?'18:30':'18:45';
+  const dataStr = state.presDateStr;
+  DB.presencas = DB.presencas.filter(p=> !(p.data===dataStr && p.horario===horario) || state.presPendentes.has(p.aluno_id));
+  const jaSalvos = new Set(DB.presencas.filter(p=>p.data===dataStr&&p.horario===horario).map(p=>p.aluno_id));
+  state.presPendentes.forEach(id=>{
+    if(!jaSalvos.has(id)){
+      DB.presencas.push({id: DB.nextPresencaId++, aluno_id:id, data:dataStr, horario});
+    }
+  });
+  saveDB();
+  alert('Presenças salvas: '+state.presPendentes.size+' aluno(s).');
+  render();
+}
+
+function renderProgresso(){
+  let lista = DB.alunos.slice().sort((a,b)=>a.nome.localeCompare(b.nome));
+  return `
+  <div class="card">
+    ${lista.length===0?`<div class="empty">Nenhum aluno cadastrado.</div>`:lista.map(a=>{
+      const p = progressoAluno(a);
+      const presDoAluno = DB.presencas.filter(x=>x.aluno_id===a.id).map(x=>x.data).sort().reverse();
+      const ultima = presDoAluno[0];
+      let streak = 0;
+      if(presDoAluno.length){
+        const datas = Array.from(new Set(presDoAluno)).map(parseISO);
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+        const diffUlt = Math.floor((hoje-datas[0])/86400000);
+        if(diffUlt<=1){
+          let esperado = new Date(datas[0]);
+          for(const dt of datas){
+            if(dt.getTime()===esperado.getTime()){ streak++; esperado.setDate(esperado.getDate()-1); } else break;
+          }
+        }
+      }
+      return `<div class="list-item">
+        <div class="avatar">${a.foto_url?`<img src="${a.foto_url}">`:getInitials(a.nome)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:14px;">${escapeHtml(a.nome)}</div>
+          ${faixaHTML(a.graduacao,a.graus,a.graus_vermelhos,'sm')}
+          <div class="row" style="margin-top:6px;flex-wrap:wrap;">
+            <span class="badge">${p.total} presenças</span>
+            <span class="badge ${p.desdeUltimo>=8?'badge-green':''}">${p.desdeUltimo}/8 p/ próximo grau</span>
+            ${streak>1?`<span class="badge badge-blue">${streak} dias seguidos</span>`:''}
+          </div>
+          <div class="note" style="margin-top:4px;">Última presença: ${ultima?fmtBR(ultima):'—'}</div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderHistorico(){
+  const lista = DB.promocoes.slice().sort((a,b)=> new Date(b.data_promocao)-new Date(a.data_promocao));
+  return `<div class="card">
+    ${lista.length===0?`<div class="empty">Nenhuma promoção registrada ainda.</div>`:lista.map(p=>{
+      const aluno = DB.alunos.find(a=>a.id===p.aluno_id);
+      const nome = aluno?aluno.nome:('Aluno #'+p.aluno_id);
+      const data = new Date(p.data_promocao);
+      const dataFmt = pad(data.getDate())+'/'+pad(data.getMonth()+1)+'/'+data.getFullYear();
+      if(p.tipo==='graduacao'){
+        return `<div class="promo-item"><div class="row"><span class="badge badge-blue">Faixa</span><span style="font-weight:600;font-size:13px;">${escapeHtml(nome)}</span></div>
+        <div class="row" style="margin-top:6px;">${faixaHTML(p.graduacao_anterior,4,4,'sm')}<span>&#8594;</span>${faixaHTML(p.graduacao_nova,0,0,'sm')}</div>
+        <div class="note" style="margin-top:4px;">${dataFmt}</div></div>`;
+      }
+      return `<div class="promo-item"><div class="row"><span class="badge badge-green">Grau</span><span style="font-weight:600;font-size:13px;">${escapeHtml(nome)}</span></div>
+        <div class="row" style="margin-top:6px;">${faixaHTML(p.graduacao_nova,p.graus_novos,p.graus_vermelhos_novos,'sm')}</div>
+        <div class="note" style="margin-top:4px;">${dataFmt}</div></div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderBackup(){
+  return `
+  <div class="card">
+    <h2>Exportar</h2>
+    <p class="note" style="margin-bottom:10px;">Baixa um arquivo .json com todos os alunos e presenças, para guardar ou levar para outro lugar.</p>
+    <button class="btn btn-primary btn-block" onclick="exportarBackup()">Baixar backup</button>
+  </div>
+  <div class="card">
+    <h2>Importar</h2>
+    <p class="note" style="margin-bottom:10px;">Envia um arquivo .json exportado daqui. Alunos e presenças duplicados são ignorados.</p>
+    <input type="file" accept="application/json" id="import-file" onchange="importarBackup(this.files[0])">
+    ${state.backupMsg?`<p class="note" style="margin-top:8px;">${state.backupMsg}</p>`:''}
+  </div>
+  <div class="card">
+    <p class="note">${DB.alunos.length} alunos, ${DB.presencas.length} presenças, ${DB.promocoes.length} promoções registradas nesta conta.</p>
+  </div>
+  `;
+}
+function exportarBackup(){
+  const data = { version:'1.0', exported_at: new Date().toISOString(), alunos: DB.alunos, presencas: DB.presencas, promocoes: DB.promocoes };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'jiu-presenca-backup-'+todayStr()+'.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function importarBackup(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const body = JSON.parse(e.target.result);
+      if(!body.alunos || !body.presencas){ state.backupMsg = 'Arquivo inválido.'; render(); return; }
+      let alunosCount = 0, presCount = 0;
+      const idMap = {};
+      body.alunos.forEach(a=>{
+        const existing = DB.alunos.find(x=>x.nome===a.nome && x.academia===a.academia);
+        if(existing){ idMap[a.id] = existing.id; }
+        else{
+          const novo = { id: DB.nextAlunoId++, nome:a.nome, idade:a.idade||null, academia:a.academia, graduacao:a.graduacao||'branca', graus:a.graus||0, graus_vermelhos:a.graus_vermelhos||0, foto_url:null, data_nascimento:a.data_nascimento||null, presencas_na_ultima_promocao:a.presencas_na_ultima_promocao||0, created_at:a.created_at||new Date().toISOString(), updated_at:a.updated_at||new Date().toISOString() };
+          DB.alunos.push(novo); idMap[a.id]=novo.id; alunosCount++;
+        }
+      });
+      body.presencas.forEach(p=>{
+        const alunoId = idMap[p.aluno_id] !== undefined ? idMap[p.aluno_id] : p.aluno_id;
+        const existing = DB.presencas.find(x=>x.aluno_id===alunoId && x.data===p.data && x.horario===p.horario);
+        if(!existing){ DB.presencas.push({id: DB.nextPresencaId++, aluno_id:alunoId, data:p.data, horario:p.horario}); presCount++; }
+      });
+      saveDB();
+      state.backupMsg = 'Importado: '+alunosCount+' aluno(s) e '+presCount+' presença(s) novos.';
+      render();
+    }catch(err){ state.backupMsg = 'Erro ao ler o arquivo: '+err.message; render(); }
+  };
+  reader.readAsText(file);
+}
+
+function renderModal(){
+  if(state.modal==='aluno-form') return renderAlunoForm();
+  if(state.modal==='detalhes') return renderDetalhes();
+  return '';
+}
+function fecharModal(){ state.modal=null; render(); }
+
+function renderAlunoForm(){
+  const editing = state.editingId!==null;
+  const a = editing ? DB.alunos.find(x=>x.id===state.editingId) : null;
+  const academias = getAcademias();
+  return `<div class="modal-overlay" onclick="if(event.target===this) fecharModal();">
+    <div class="modal">
+      <div class="modal-head"><h2 style="margin:0;">${editing?'Editar aluno':'Novo aluno'}</h2><button class="btn-icon" onclick="fecharModal()">&#10005;</button></div>
+      <div style="text-align:center;margin-bottom:14px;">
+        <div class="avatar" style="width:72px;height:72px;font-size:22px;margin:0 auto 8px;">${state.fotoPreview?`<img src="${state.fotoPreview}">`:(a?getInitials(a.nome):'?')}</div>
+        <input type="file" accept="image/*" id="foto-input" onchange="handleFotoUpload(this.files[0])">
+      </div>
+      <div class="field"><label>Nome</label><input type="text" id="f-nome" value="${a?escapeHtml(a.nome):''}"></div>
+      <div class="grid2">
+        <div class="field"><label>Academia</label>
+          <select id="f-academia-select" onchange="toggleNovaAcademia()">${academias.map(x=>`<option value="${escapeHtml(x)}" ${a?(a.academia===x?'selected':''):(x===academias[0]?'selected':'')}>${escapeHtml(x)}</option>`).join('')}<option value="__nova__">+ Nova academia...</option></select>
+          <input type="text" id="f-academia-nova" placeholder="Nome da nova academia" style="margin-top:6px;display:none;">
+        </div>
+        <div class="field"><label>Data de nascimento</label><input type="date" id="f-nascimento" value="${a&&a.data_nascimento?a.data_nascimento:''}"></div>
+      </div>
+      <div class="field"><label>Idade (se não souber a data)</label><input type="number" id="f-idade" value="${a&&a.idade?a.idade:''}"></div>
+      <div class="field"><label>Graduação</label>
+        <select id="f-graduacao">${FAIXAS.map(f=>`<option value="${f}" ${a&&a.graduacao===f?'selected':''}>${f.replace(/-/g,' ')}</option>`).join('')}</select>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Graus brancos (0-4)</label><input type="number" id="f-graus" min="0" max="4" value="${a?a.graus:0}"></div>
+        <div class="field"><label>Graus vermelhos (0-4)</label><input type="number" id="f-graus-v" min="0" max="4" value="${a?a.graus_vermelhos:0}"></div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="salvarAluno()">${editing?'Salvar alterações':'Adicionar aluno'}</button>
+    </div>
+  </div>`;
+}
+function handleFotoUpload(file){
+  if(!file) return;
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = function(e){
+    img.onload = function(){
+      const maxW = 200;
+      const scale = Math.min(1, maxW/img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width*scale; canvas.height = img.height*scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      state.fotoPreview = canvas.toDataURL('image/jpeg',0.7);
+      render();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function toggleNovaAcademia(){
+  const sel = document.getElementById('f-academia-select');
+  const nova = document.getElementById('f-academia-nova');
+  nova.style.display = sel.value==='__nova__' ? 'block' : 'none';
+}
+function salvarAluno(){
+  const nome = document.getElementById('f-nome').value.trim();
+  if(!nome){ alert('Informe o nome do aluno.'); return; }
+  const academiaSel = document.getElementById('f-academia-select').value;
+  const academia = (academiaSel==='__nova__' ? document.getElementById('f-academia-nova').value.trim() : academiaSel) || 'Sem academia';
+  const nascimento = document.getElementById('f-nascimento').value || null;
+  const idadeInput = document.getElementById('f-idade').value;
+  const graduacao = document.getElementById('f-graduacao').value;
+  const graus = Math.max(0,Math.min(4, parseInt(document.getElementById('f-graus').value)||0));
+  const grausV = Math.max(0,Math.min(4, parseInt(document.getElementById('f-graus-v').value)||0));
+
+  const idadeAtual = nascimento ? calcIdade(nascimento) : (idadeInput?parseInt(idadeInput):null);
+  if(idadeAtual && idadeAtual>15 && graduacao!=='branca' && FAIXAS.indexOf(graduacao) < FAIXAS.indexOf('azul-branca')){
+    if(!confirm('Este aluno tem mais de 15 anos e a graduação escolhida é do sistema infantil. Continuar mesmo assim?')) return;
+  }
+
+  if(state.editingId!==null){
+    const a = DB.alunos.find(x=>x.id===state.editingId);
+    a.nome=nome; a.academia=academia; a.data_nascimento=nascimento; a.idade=idadeInput?parseInt(idadeInput):null;
+    a.graduacao=graduacao; 
+    if(graus===0 && grausV===0 && (a.graus!==0||a.graus_vermelhos!==0)){
+      a.presencas_na_ultima_promocao = totalPresencasDe(a.id);
+    }
+    a.graus=graus; a.graus_vermelhos=grausV;
+    if(state.fotoPreview) a.foto_url = state.fotoPreview;
+    a.updated_at = new Date().toISOString();
+  } else {
+    DB.alunos.push({
+      id: DB.nextAlunoId++, nome, idade: idadeInput?parseInt(idadeInput):null, academia, graduacao,
+      graus, graus_vermelhos: grausV, foto_url: state.fotoPreview||null, data_nascimento: nascimento,
+      presencas_na_ultima_promocao: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    });
+  }
+  saveDB();
+  state.modal=null; state.editingId=null; state.fotoPreview=null;
+  render();
+}
+
+function renderDetalhes(){
+  const a = DB.alunos.find(x=>x.id===state.detalhesId);
+  if(!a) return '';
+  const p = progressoAluno(a);
+  const presDoAluno = DB.presencas.filter(x=>x.aluno_id===a.id).sort((x,y)=>y.data.localeCompare(x.data)).slice(0,15);
+  return `<div class="modal-overlay" onclick="if(event.target===this) fecharModal();">
+    <div class="modal">
+      <div class="modal-head"><h2 style="margin:0;">${escapeHtml(a.nome)}</h2><button class="btn-icon" onclick="fecharModal()">&#10005;</button></div>
+      <div style="text-align:center;margin-bottom:12px;">
+        <div class="avatar" style="width:72px;height:72px;font-size:22px;margin:0 auto 8px;">${a.foto_url?`<img src="${a.foto_url}">`:getInitials(a.nome)}</div>
+        <div style="display:flex;justify-content:center;">${faixaHTML(a.graduacao,a.graus,a.graus_vermelhos,'md')}</div>
+        <div class="note" style="margin-top:6px;text-transform:capitalize;">${a.graduacao.replace(/-/g,' ')} · ${a.academia}</div>
+      </div>
+      <div class="grid2" style="margin-bottom:14px;">
+        <div class="stat"><div class="n">${p.total}</div><div class="l">Total de presenças</div></div>
+        <div class="stat"><div class="n">${p.desdeUltimo}/8</div><div class="l">Desde o último grau</div></div>
+      </div>
+      <h2>Últimas presenças</h2>
+      ${presDoAluno.length===0?`<div class="empty">Sem presenças registradas.</div>`:presDoAluno.map(x=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--border);"><span style="flex:1;">${fmtBR(x.data)}</span><span class="note">${x.horario}</span></div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function bindDynamic(){}
+
+loadDB().then(render).catch(function(err){
+  console.error(err);
+  document.getElementById('app').innerHTML =
+    '<div style="padding:32px 20px;font-family:-apple-system,sans-serif;color:#0f172a;">'+
+    '<h2 style="margin:0 0 8px;">Não consegui carregar o app</h2>'+
+    '<p style="color:#64748b;font-size:14px;">'+ (err && err.message ? err.message : String(err)) +'</p>'+
+    '<button onclick="location.reload()" style="margin-top:12px;padding:10px 16px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;">Tentar novamente</button>'+
+    '</div>';
+});
+</script>
+</body>
+</html>
