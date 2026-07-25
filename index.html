@@ -120,6 +120,7 @@ let state = {
   detalhesId: null,
   fotoPreview: null,
   backupMsg: '',
+  syncStatus: 'idle',
 };
 
 function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -144,29 +145,72 @@ function getAcademias(){
 }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-const hasClaudeStorage = (typeof window.storage !== 'undefined') && window.storage && typeof window.storage.get === 'function';
+// ==== Sincronização na nuvem (JSONBin.io) ====
+// 1) Crie uma conta grátis em jsonbin.io
+// 2) Crie um bin novo (pode deixar com {})
+// 3) Pegue a X-Master-Key (em "API Keys" no seu perfil) e o Bin ID (na URL do bin)
+// 4) Cole os dois valores abaixo, entre as aspas
+const JSONBIN_API_KEY = '$2a$10$jJJkxiXNrGR5mNa071nwyudobpBEpb1MXAtHcG8lQGK7/u/.yQ6';
+const JSONBIN_BIN_ID = '6a641048f5f4af5e29bdfff5';
+const JSONBIN_READ_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`;
+const JSONBIN_WRITE_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 
+let ultimaLeituraDaNuvemOk = false;
 async function storageGet(key){
-  if(hasClaudeStorage){
-    try{ const r = await window.storage.get(key); return r ? r.value : null; }
-    catch(e){ return null; }
+  try{
+    const res = await fetch(JSONBIN_READ_URL, { headers: { 'X-Master-Key': JSONBIN_API_KEY } });
+    if(!res.ok) throw new Error('Não foi possível buscar os dados na nuvem (status '+res.status+')');
+    const json = await res.json();
+    const value = (json.record && Object.keys(json.record).length) ? JSON.stringify(json.record) : null;
+    if(value) localStorage.setItem('jiu-presenca-cache-'+key, value);
+    ultimaLeituraDaNuvemOk = true;
+    return value;
+  }catch(e){
+    console.error('Sem conexão com a nuvem, usando última cópia salva neste aparelho', e);
+    ultimaLeituraDaNuvemOk = false;
+    return localStorage.getItem('jiu-presenca-cache-'+key);
   }
-  try{ return window.localStorage.getItem(key); }
-  catch(e){ return null; }
 }
+let dbSnapshotPendente = null;
 async function storageSet(key, value){
-  if(hasClaudeStorage){
-    try{ await window.storage.set(key, value); return true; }
-    catch(e){ console.error('storage error', e); return false; }
+  localStorage.setItem('jiu-presenca-cache-'+key, value);
+  try{
+    const res = await fetch(JSONBIN_WRITE_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY, 'X-Bin-Versioning': 'false' },
+      body: value
+    });
+    if(!res.ok) throw new Error('status '+res.status);
+    return true;
+  }catch(e){
+    console.error('Não consegui salvar na nuvem agora (ficou guardado só neste aparelho por enquanto)', e);
+    return false;
   }
-  try{ window.localStorage.setItem(key, value); return true; }
-  catch(e){ console.error('storage error', e); return false; }
 }
+function saveDB(){
+  dbSnapshotPendente = JSON.stringify(DB);
+  state.syncStatus = 'saving';
+  return enviarParaNuvem(dbSnapshotPendente);
+}
+async function enviarParaNuvem(snapshot){
+  render();
+  const ok = await storageSet('data', snapshot);
+  state.syncStatus = ok ? 'ok' : 'error';
+  render();
+  return ok;
+}
+function reenviarParaNuvem(){
+  const snapshot = dbSnapshotPendente || JSON.stringify(DB);
+  state.syncStatus = 'saving';
+  enviarParaNuvem(snapshot);
+}
+
 
 async function loadDB(){
   const raw = await storageGet('data');
   if(raw){
     DB = JSON.parse(raw);
+    state.syncStatus = ultimaLeituraDaNuvemOk ? 'ok' : 'error';
   } else {
     DB = {
       alunos: SEED_ALUNOS.map(a=>({...a})),
@@ -178,9 +222,6 @@ async function loadDB(){
     };
     await saveDB();
   }
-}
-function saveDB(){
-  return storageSet('data', JSON.stringify(DB));
 }
 
 function totalPresencasDe(alunoId){
@@ -259,7 +300,13 @@ function renderHeader(){
     historico:'Graus e faixas conquistadas',
     backup:'Exportar ou importar dados',
   };
-  return `<header class="top"><h1>${titles[state.tab]}</h1><p class="sub">${subs[state.tab]}</p></header><div class="px" style="padding-top:14px;">`;
+  const syncBadge = {
+    saving: '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#b45309;background:#fef3c7;padding:2px 8px;border-radius:999px;">⏳ Salvando na nuvem...</span>',
+    ok: '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#166534;background:#dcfce7;padding:2px 8px;border-radius:999px;">☁️ Sincronizado</span>',
+    error: '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#991b1b;background:#fee2e2;padding:2px 8px;border-radius:999px;cursor:pointer;" onclick="reenviarParaNuvem()">⚠️ Não sincronizado — toque para tentar de novo</span>',
+    idle: '',
+  }[state.syncStatus || 'idle'];
+  return `<header class="top"><h1>${titles[state.tab]}</h1><p class="sub">${subs[state.tab]}</p>${syncBadge?`<div style="margin-top:6px;">${syncBadge}</div>`:''}</header><div class="px" style="padding-top:14px;">`;
 }
 const NAV_ICONS = {
   dashboard: '<path d="M4 11.5 12 4l8 7.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9" stroke-linecap="round" stroke-linejoin="round"/>',
