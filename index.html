@@ -148,19 +148,16 @@ function getAcademias(){
 }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-// ==== Sincronização na nuvem (JSONBin.io) ====
-const JSONBIN_API_KEY = '$2a$10$jJJkxiXNrGR5mNa071nwyudobpBEpb1MXAtHcG8lQGK7/u/.yQ6pe';
-const JSONBIN_BIN_ID = '6a641048f5f4af5e29bdfff5';
-const JSONBIN_READ_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`;
-const JSONBIN_WRITE_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+// ==== Sincronização na nuvem (Firebase Realtime Database) ====
+const FIREBASE_DB_URL = 'https://jiu-presenca-default-rtdb.firebaseio.com';
 
 let ultimaLeituraDaNuvemOk = false;
 async function storageGet(key){
   try{
-    const res = await fetch(JSONBIN_READ_URL, { headers: { 'X-Master-Key': JSONBIN_API_KEY } });
+    const res = await fetch(FIREBASE_DB_URL+'/'+key+'.json');
     if(!res.ok) throw new Error('Não foi possível buscar os dados na nuvem (status '+res.status+')');
-    const json = await res.json();
-    const value = (json.record && Object.keys(json.record).length) ? JSON.stringify(json.record) : null;
+    const raw = await res.json();
+    const value = (typeof raw === 'string' && raw) ? raw : null;
     if(value) localStorage.setItem('jiu-presenca-cache-'+key, value);
     ultimaLeituraDaNuvemOk = true;
     return value;
@@ -174,10 +171,10 @@ let dbSnapshotPendente = null;
 async function storageSet(key, value){
   localStorage.setItem('jiu-presenca-cache-'+key, value);
   try{
-    const res = await fetch(JSONBIN_WRITE_URL, {
+    const res = await fetch(FIREBASE_DB_URL+'/'+key+'.json', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY, 'X-Bin-Versioning': 'true' },
-      body: value
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(value)
     });
     if(!res.ok) throw new Error('status '+res.status);
     return true;
@@ -728,17 +725,10 @@ function renderHistorico(){
 function renderBackup(){
   const autoBackups = getBackupsAutomaticos();
   const tamanhoBytes = new Blob([JSON.stringify(DB)]).size;
-  const limiteBytes = 100*1024;
-  const pct = Math.min(100, Math.round(tamanhoBytes/limiteBytes*100));
-  const perto = pct >= 80;
   return `
   <div class="card">
-    <h2>Tamanho do banco de dados</h2>
-    <p class="note" style="margin-bottom:8px;">O plano gratuito do JSONBin aceita até 100KB por banco. Fotos de alunos são o que mais ocupa espaço.</p>
-    <div style="background:var(--surface-1,#f1f5f9);border-radius:999px;height:10px;overflow:hidden;margin-bottom:6px;">
-      <div style="height:100%;width:${pct}%;background:${perto?'#dc2626':'#16a34a'};"></div>
-    </div>
-    <p class="note" style="${perto?'color:#dc2626;font-weight:600;':''}">${(tamanhoBytes/1024).toFixed(1)}KB de 100KB usados (${pct}%)${perto?' — perto do limite, novas sincronizações podem falhar':''}</p>
+    <h2>Armazenamento na nuvem</h2>
+    <p class="note">${(tamanhoBytes/1024).toFixed(1)}KB usados de 1GB disponíveis no Firebase (plano gratuito). Sincronização automática a cada alteração.</p>
   </div>
   <div class="card">
     <h2>Backups automáticos</h2>
