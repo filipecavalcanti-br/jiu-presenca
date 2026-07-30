@@ -596,26 +596,22 @@ function renderPresenca(){
       </div>`;
     }).join('')}
   </div>
-  ${alunosF.length>0?`<button class="fab" onclick="confirmarPresencas()">Salvar (${state.presPendentes.size})</button>`:''}
+  <p class="note" style="text-align:center;margin-top:10px;">Toque no aluno para marcar presença — salva na hora.</p>
   `;
 }
 function togglePendente(id){
-  if(state.presPendentes.has(id)) state.presPendentes.delete(id); else state.presPendentes.add(id);
-  render();
-}
-function confirmarPresencas(){
   const isVilla = state.presAcademia==='VillaFight';
   const horario = isVilla?'18:30':'18:45';
   const dataStr = state.presDateStr;
-  DB.presencas = DB.presencas.filter(p=> !(p.data===dataStr && p.horario===horario) || state.presPendentes.has(p.aluno_id));
-  const jaSalvos = new Set(DB.presencas.filter(p=>p.data===dataStr&&p.horario===horario).map(p=>p.aluno_id));
-  state.presPendentes.forEach(id=>{
-    if(!jaSalvos.has(id)){
-      DB.presencas.push({id: DB.nextPresencaId++, aluno_id:id, data:dataStr, horario});
-    }
-  });
+  const existing = DB.presencas.find(p=>p.aluno_id===id && p.data===dataStr && p.horario===horario);
+  if(existing){
+    DB.presencas = DB.presencas.filter(p=>p!==existing);
+    state.presPendentes.delete(id);
+  } else {
+    DB.presencas.push({id: DB.nextPresencaId++, aluno_id:id, data:dataStr, horario});
+    state.presPendentes.add(id);
+  }
   saveDB();
-  alert('Presenças salvas: '+state.presPendentes.size+' aluno(s).');
   render();
 }
 
@@ -731,7 +727,19 @@ function renderHistorico(){
 
 function renderBackup(){
   const autoBackups = getBackupsAutomaticos();
+  const tamanhoBytes = new Blob([JSON.stringify(DB)]).size;
+  const limiteBytes = 100*1024;
+  const pct = Math.min(100, Math.round(tamanhoBytes/limiteBytes*100));
+  const perto = pct >= 80;
   return `
+  <div class="card">
+    <h2>Tamanho do banco de dados</h2>
+    <p class="note" style="margin-bottom:8px;">O plano gratuito do JSONBin aceita até 100KB por banco. Fotos de alunos são o que mais ocupa espaço.</p>
+    <div style="background:var(--surface-1,#f1f5f9);border-radius:999px;height:10px;overflow:hidden;margin-bottom:6px;">
+      <div style="height:100%;width:${pct}%;background:${perto?'#dc2626':'#16a34a'};"></div>
+    </div>
+    <p class="note" style="${perto?'color:#dc2626;font-weight:600;':''}">${(tamanhoBytes/1024).toFixed(1)}KB de 100KB usados (${pct}%)${perto?' — perto do limite, novas sincronizações podem falhar':''}</p>
+  </div>
   <div class="card">
     <h2>Backups automáticos</h2>
     <p class="note" style="margin-bottom:10px;">Toda vez que algo muda no app, uma cópia é guardada sozinha aqui neste navegador (as 10 mais recentes), além de ir para a nuvem. Não precisa fazer nada.</p>
@@ -863,13 +871,13 @@ function handleFotoUpload(file){
   const reader = new FileReader();
   reader.onload = function(e){
     img.onload = function(){
-      const maxW = 200;
+      const maxW = 90;
       const scale = Math.min(1, maxW/img.width);
       const canvas = document.createElement('canvas');
       canvas.width = img.width*scale; canvas.height = img.height*scale;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      state.fotoPreview = canvas.toDataURL('image/jpeg',0.7);
+      state.fotoPreview = canvas.toDataURL('image/jpeg',0.5);
       render();
     };
     img.src = e.target.result;
